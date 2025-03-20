@@ -1,6 +1,6 @@
 # elaka
 
-A new Flutter project.
+A local community app for Bangladeshi.
 
 ## Getting Started
 
