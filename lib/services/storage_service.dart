@@ -1,68 +1,55 @@
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// File: lib/services/storage_service.dart
+
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 class StorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final Uuid _uuid = Uuid();
 
-  // Upload profile image
-  Future<String> uploadProfileImage(File image) async {
-    try {
-      final userId = _auth.currentUser!.uid;
-      final ref = _storage.ref().child('users/$userId/profile.jpg');
+  // Upload a single image and return the download URL
+  Future<String> uploadImage(File imageFile, String folder) async {
+    // Create a unique filename
+    final String fileName = '${const Uuid().v4()}.jpg';
 
-      await ref.putFile(image);
+    // Create a reference to the file location
+    final Reference ref = _storage.ref().child('$folder/$fileName');
 
-      return await ref.getDownloadURL();
-    } catch (e) {
-      throw Exception('Failed to upload profile image: $e');
-    }
+    // Upload the file
+    final UploadTask uploadTask = ref.putFile(imageFile);
+
+    // Wait for the upload to complete and get the download URL
+    final TaskSnapshot taskSnapshot = await uploadTask;
+    final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
+    return downloadUrl;
   }
 
-  // Upload listing image
-  Future<String> uploadListingImage(File image) async {
-    try {
-      final userId = _auth.currentUser!.uid;
-      final imageId = _uuid.v4();
-      final ref = _storage.ref().child('listings/$userId/$imageId.jpg');
+  // Upload multiple images and return a list of download URLs
+  Future<List<String>> uploadImages(List<XFile> images, String folder) async {
+    List<String> imageUrls = [];
 
-      await ref.putFile(image);
-
-      return await ref.getDownloadURL();
-    } catch (e) {
-      throw Exception('Failed to upload listing image: $e');
+    for (var image in images) {
+      final File file = File(image.path);
+      final String url = await uploadImage(file, folder);
+      imageUrls.add(url);
     }
+
+    return imageUrls;
   }
 
-  // Upload chat image
-  Future<String> uploadChatImage(File image) async {
+  // Delete an image by URL
+  Future<void> deleteImage(String imageUrl) async {
     try {
-      final userId = _auth.currentUser!.uid;
-      final imageId = _uuid.v4();
-      final ref = _storage.ref().child('chats/$userId/$imageId.jpg');
+      // Extract the path from the URL
+      final Reference ref = _storage.refFromURL(imageUrl);
 
-      await ref.putFile(image);
-
-      return await ref.getDownloadURL();
+      // Delete the file
+      await ref.delete();
     } catch (e) {
-      throw Exception('Failed to upload chat image: $e');
-    }
-  }
-
-  // Upload verification document
-  Future<String> uploadVerificationDocument(File document) async {
-    try {
-      final userId = _auth.currentUser!.uid;
-      final ref = _storage.ref().child('verification/$userId/document.jpg');
-
-      await ref.putFile(document);
-
-      return await ref.getDownloadURL();
-    } catch (e) {
-      throw Exception('Failed to upload verification document: $e');
+      print('Error deleting image: $e');
+      throw e;
     }
   }
 }

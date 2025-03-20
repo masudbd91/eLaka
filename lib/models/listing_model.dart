@@ -1,4 +1,8 @@
-enum ListingStatus { active, reserved, sold }
+// File: lib/models/listing_model.dart
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum ListingStatus { active, sold, deleted }
 
 class ListingModel {
   final String id;
@@ -13,13 +17,9 @@ class ListingModel {
   final List<String> tags;
   final String sellerId;
   final String sellerName;
-  final String sellerImageUrl;
-  final bool isSellerVerified;
-  final ListingStatus status;
-  final int viewCount;
-  final int favoriteCount;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final ListingStatus status;
 
   ListingModel({
     required this.id,
@@ -31,49 +31,15 @@ class ListingModel {
     required this.imageUrls,
     required this.neighborhood,
     required this.location,
-    this.tags = const [],
+    required this.tags,
     required this.sellerId,
     required this.sellerName,
-    this.sellerImageUrl = '',
-    this.isSellerVerified = false,
-    this.status = ListingStatus.active,
-    this.viewCount = 0,
-    this.favoriteCount = 0,
     required this.createdAt,
     required this.updatedAt,
+    this.status = ListingStatus.active,
   });
 
-  factory ListingModel.fromMap(Map<String, dynamic> map, String id) {
-    return ListingModel(
-      id: id,
-      title: map['title'] ?? '',
-      description: map['description'] ?? '',
-      price: (map['price'] ?? 0.0).toDouble(),
-      category: map['category'] ?? '',
-      subcategory: map['subcategory'] ?? '',
-      imageUrls: List<String>.from(map['imageUrls'] ?? []),
-      neighborhood: map['neighborhood'] ?? '',
-      location: map['location'] ?? '',
-      tags: List<String>.from(map['tags'] ?? []),
-      sellerId: map['sellerId'] ?? '',
-      sellerName: map['sellerName'] ?? '',
-      sellerImageUrl: map['sellerImageUrl'] ?? '',
-      isSellerVerified: map['isSellerVerified'] ?? false,
-      status: ListingStatus.values.firstWhere(
-            (e) => e.toString() == 'ListingStatus.${map['status'] ?? 'active'}',
-        orElse: () => ListingStatus.active,
-      ),
-      viewCount: map['viewCount'] ?? 0,
-      favoriteCount: map['favoriteCount'] ?? 0,
-      createdAt: map['createdAt'] != null
-          ? DateTime.parse(map['createdAt'])
-          : DateTime.now(),
-      updatedAt: map['updatedAt'] != null
-          ? DateTime.parse(map['updatedAt'])
-          : DateTime.now(),
-    );
-  }
-
+  // Convert ListingModel to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'title': title,
@@ -87,16 +53,47 @@ class ListingModel {
       'tags': tags,
       'sellerId': sellerId,
       'sellerName': sellerName,
-      'sellerImageUrl': sellerImageUrl,
-      'isSellerVerified': isSellerVerified,
+      'createdAt': createdAt.toUtc(),
+      'updatedAt': updatedAt.toUtc(),
       'status': status.toString().split('.').last,
-      'viewCount': viewCount,
-      'favoriteCount': favoriteCount,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
+  // Create ListingModel from Firestore document
+  factory ListingModel.fromMap(Map<String, dynamic> map, String documentId) {
+    return ListingModel(
+      id: documentId,
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      price: (map['price'] ?? 0).toDouble(),
+      category: map['category'] ?? '',
+      subcategory: map['subcategory'] ?? '',
+      imageUrls: List<String>.from(map['imageUrls'] ?? []),
+      neighborhood: map['neighborhood'] ?? '',
+      location: map['location'] ?? '',
+      tags: List<String>.from(map['tags'] ?? []),
+      sellerId: map['sellerId'] ?? '',
+      sellerName: map['sellerName'] ?? '',
+      createdAt: map['createdAt'] != null
+          ? (map['createdAt'] is Timestamp
+          ? (map['createdAt'] as Timestamp).toDate()
+          : DateTime.parse(map['createdAt'].toString()))
+          : DateTime.now(),
+      updatedAt: map['updatedAt'] != null
+          ? (map['updatedAt'] is Timestamp
+          ? (map['updatedAt'] as Timestamp).toDate()
+          : DateTime.parse(map['updatedAt'].toString()))
+          : DateTime.now(),
+      status: map['status'] != null
+          ? ListingStatus.values.firstWhere(
+            (e) => e.toString().split('.').last == map['status'],
+        orElse: () => ListingStatus.active,
+      )
+          : ListingStatus.active,
+    );
+  }
+
+  // Create a copy of this ListingModel with given fields replaced with new values
   ListingModel copyWith({
     String? id,
     String? title,
@@ -110,13 +107,9 @@ class ListingModel {
     List<String>? tags,
     String? sellerId,
     String? sellerName,
-    String? sellerImageUrl,
-    bool? isSellerVerified,
-    ListingStatus? status,
-    int? viewCount,
-    int? favoriteCount,
     DateTime? createdAt,
     DateTime? updatedAt,
+    ListingStatus? status,
   }) {
     return ListingModel(
       id: id ?? this.id,
@@ -131,13 +124,9 @@ class ListingModel {
       tags: tags ?? this.tags,
       sellerId: sellerId ?? this.sellerId,
       sellerName: sellerName ?? this.sellerName,
-      sellerImageUrl: sellerImageUrl ?? this.sellerImageUrl,
-      isSellerVerified: isSellerVerified ?? this.isSellerVerified,
-      status: status ?? this.status,
-      viewCount: viewCount ?? this.viewCount,
-      favoriteCount: favoriteCount ?? this.favoriteCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      status: status ?? this.status,
     );
   }
 }

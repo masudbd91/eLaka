@@ -1,75 +1,63 @@
-enum MessageType { text, image, offer, system }
+// File: lib/models/message_model.dart
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum MessageType { text, image }
 
 class MessageModel {
   final String id;
   final String chatId;
   final String senderId;
-  final String text;
-  final String? imageUrl;
+  final String senderName;
+  final String content;
   final MessageType type;
-  final Map<String, dynamic>? metadata;
   final DateTime timestamp;
+  final bool isRead;
 
   MessageModel({
     required this.id,
     required this.chatId,
     required this.senderId,
-    required this.text,
-    this.imageUrl,
+    required this.senderName,
+    required this.content,
     required this.type,
-    this.metadata,
     required this.timestamp,
+    required this.isRead,
   });
 
-  factory MessageModel.fromMap(Map<String, dynamic> map, String id) {
-    return MessageModel(
-      id: id,
-      chatId: map['chatId'] ?? '',
-      senderId: map['senderId'] ?? '',
-      text: map['text'] ?? '',
-      imageUrl: map['imageUrl'],
-      type: MessageType.values.firstWhere(
-            (e) => e.toString() == 'MessageType.${map['type'] ?? 'text'}',
-        orElse: () => MessageType.text,
-      ),
-      metadata: map['metadata'],
-      timestamp: map['timestamp'] != null
-          ? DateTime.parse(map['timestamp'])
-          : DateTime.now(),
-    );
-  }
-
+  // Convert MessageModel to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'chatId': chatId,
       'senderId': senderId,
-      'text': text,
-      'imageUrl': imageUrl,
+      'senderName': senderName,
+      'content': content,
       'type': type.toString().split('.').last,
-      'metadata': metadata,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': timestamp,
+      'isRead': isRead,
     };
   }
 
-  MessageModel copyWith({
-    String? id,
-    String? chatId,
-    String? senderId,
-    String? text,
-    String? imageUrl,
-    MessageType? type,
-    Map<String, dynamic>? metadata,
-    DateTime? timestamp,
-  }) {
+  // Create MessageModel from Firestore document
+  factory MessageModel.fromMap(Map<String, dynamic> map, String documentId) {
     return MessageModel(
-      id: id ?? this.id,
-      chatId: chatId ?? this.chatId,
-      senderId: senderId ?? this.senderId,
-      text: text ?? this.text,
-      imageUrl: imageUrl ?? this.imageUrl,
-      type: type ?? this.type,
-      metadata: metadata ?? this.metadata,
-      timestamp: timestamp ?? this.timestamp,
+      id: documentId,
+      chatId: map['chatId'] ?? '',
+      senderId: map['senderId'] ?? '',
+      senderName: map['senderName'] ?? '',
+      content: map['content'] ?? '',
+      type: map['type'] != null
+          ? MessageType.values.firstWhere(
+            (e) => e.toString().split('.').last == map['type'],
+        orElse: () => MessageType.text,
+      )
+          : MessageType.text,
+      timestamp: map['timestamp'] != null
+          ? (map['timestamp'] is Timestamp
+          ? (map['timestamp'] as Timestamp).toDate()
+          : DateTime.parse(map['timestamp'].toString()))
+          : DateTime.now(),
+      isRead: map['isRead'] ?? false,
     );
   }
 }

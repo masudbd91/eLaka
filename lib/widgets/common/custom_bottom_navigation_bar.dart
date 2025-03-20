@@ -1,5 +1,6 @@
+// File: lib/widgets/common/custom_bottom_navigation_bar.dart
+
 import 'package:flutter/material.dart';
-import '../../config/theme.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
