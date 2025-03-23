@@ -1,4 +1,4 @@
-# eLaka App Features and Functionality Analysis 
+# eLaka App Features and Functionality Analysis
 
 ## eLaka Flutter App - Project StructureProject Organization
 - lib/
@@ -157,9 +157,9 @@
 5. **Reward System**: Challenges and rewards add engagement beyond basic marketplace functionality
 
 ## Conclusion
-eLaka offers a comprehensive set of features focused on facilitating local secondhand transactions. The app's functionality prioritizes simplicity, 
-security, and community-building, creating a platform that effectively connects neighbors for buying and selling. 
-While there are some reported issues with filtering and navigation, the core functionality successfully 
+eLaka offers a comprehensive set of features focused on facilitating local secondhand transactions. The app's functionality prioritizes simplicity,
+security, and community-building, creating a platform that effectively connects neighbors for buying and selling.
+While there are some reported issues with filtering and navigation, the core functionality successfully
 supports the app's mission of creating a hyperlocal marketplace experience.
 
 
