@@ -1,126 +1,162 @@
-// File: lib/services/database_service.dart
+// lib/services/database_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/listing_model.dart';
+import '../models/category_model.dart';
 import '../models/user_model.dart';
 
 class DatabaseService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore firestore;
 
-  // Collection references
-  final CollectionReference userCollection = FirebaseFirestore.instance.collection('users');
-  final CollectionReference listingCollection = FirebaseFirestore.instance.collection('listings');
+  DatabaseService({FirebaseFirestore? firestore})
+      : this.firestore = firestore ?? FirebaseFirestore.instance;
 
-  // User operations
-
-  // Create or update user data
-  Future<void> updateUserData({
-    required String uid,
-    required String name,
-    required String email,
-    required String phoneNumber,
-    required String neighborhood,
-  }) async {
-    return await userCollection.doc(uid).set({
-      'name': name,
-      'email': email,
-      'phoneNumber': phoneNumber,
-      'neighborhood': neighborhood,
-      'createdAt': FieldValue.serverTimestamp(),
-      'lastActive': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-  }
-
-  // Get user data
-  Future<UserModel?> getUserData(String uid) async {
-    DocumentSnapshot doc = await userCollection.doc(uid).get();
-    if (doc.exists) {
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+  // Listings Methods
+  Future<void> createListing(ListingModel listing) async {
+    try {
+      await firestore.collection('listings').doc(listing.id).set(listing.toMap());
+    } catch (e) {
+      throw e;
     }
-    return null;
   }
 
-  // Listing operations
-
-  // Add a listing
-  Future<String> addListing(ListingModel listing) async {
-    DocumentReference docRef = await listingCollection.add(listing.toMap());
-    return docRef.id;
-  }
-
-  // Update a listing
-  Future<void> updateListing(ListingModel listing) async {
-    return await listingCollection.doc(listing.id).update(listing.toMap());
-  }
-
-  // Delete a listing
-  Future<void> deleteListing(String id) async {
-    return await listingCollection.doc(id).delete();
-  }
-
-  // Get a listing by ID
-  Future<ListingModel?> getListingById(String id) async {
-    DocumentSnapshot doc = await listingCollection.doc(id).get();
-    if (doc.exists) {
-      return ListingModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+  Future<ListingModel?> getListing(String listingId) async {
+    try {
+      DocumentSnapshot doc = await firestore.collection('listings').doc(listingId).get();
+      if (doc.exists) {
+        return ListingModel.fromMap(doc.data() as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      throw e;
     }
-    return null;
   }
 
-  // Get listings by category
-  Stream<List<ListingModel>> getListingsByCategory(String category) {
-    return listingCollection
-        .where('category', isEqualTo: category)
-        .where('status', isEqualTo: 'active')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(_listingListFromSnapshot);
+  Future<List<ListingModel>> getListingsByCategory(String category) async {
+    try {
+      QuerySnapshot snapshot = await firestore
+          .collection('listings')
+          .where('category', isEqualTo: category)
+          .where('status', isEqualTo: 'available')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => ListingModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw e;
+    }
   }
 
-  // Get listings by user ID
-  Stream<List<ListingModel>> getListingsByUserId(String userId) {
-    return listingCollection
-        .where('sellerId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(_listingListFromSnapshot);
-  }
-
-  // Get all listings
-  Stream<List<ListingModel>> getAllListings() {
-    return listingCollection
-        .where('status', isEqualTo: 'active')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(_listingListFromSnapshot);
-  }
-
-  // Search listings
   Future<List<ListingModel>> searchListings(String query) async {
-    // Note: For better search functionality, consider using Algolia or other search services
-    QuerySnapshot snapshot = await listingCollection
-        .where('status', isEqualTo: 'active')
-        .get();
+    try {
+      // This is a simple implementation. For production, consider using Algolia or Firebase Extensions for better search
+      QuerySnapshot snapshot = await firestore
+          .collection('listings')
+          .where('status', isEqualTo: 'available')
+          .orderBy('createdAt', descending: true)
+          .get();
 
-    List<ListingModel> listings = _listingListFromSnapshot(snapshot);
+      List<ListingModel> listings = snapshot.docs
+          .map((doc) => ListingModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
 
-    if (query.isEmpty) return listings;
-
-    final lowercaseQuery = query.toLowerCase();
-    return listings.where((listing) =>
-    listing.title.toLowerCase().contains(lowercaseQuery) ||
-        listing.description.toLowerCase().contains(lowercaseQuery) ||
-        listing.tags.any((tag) => tag.toLowerCase().contains(lowercaseQuery))
-    ).toList();
+      // Filter listings by query
+      return listings.where((listing) =>
+      listing.title.toLowerCase().contains(query.toLowerCase()) ||
+          listing.description.toLowerCase().contains(query.toLowerCase())
+      ).toList();
+    } catch (e) {
+      throw e;
+    }
   }
 
-  // Helper method to convert snapshot to list of listings
-  List<ListingModel> _listingListFromSnapshot(QuerySnapshot snapshot) {
-    return snapshot.docs.map((doc) {
-      return ListingModel.fromMap(
-        doc.data() as Map<String, dynamic>,
-        doc.id,
-      );
-    }).toList();
+  Future<void> updateListingStatus(String listingId, String status) async {
+    try {
+      await firestore.collection('listings').doc(listingId).update({
+        'status': status,
+      });
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  Future<void> deleteListing(String listingId) async {
+    try {
+      await firestore.collection('listings').doc(listingId).delete();
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Categories Methods
+  Future<List<CategoryModel>> getCategories() async {
+    try {
+      QuerySnapshot snapshot = await firestore.collection('categories').get();
+      return snapshot.docs
+          .map((doc) => CategoryModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // User Methods
+  Future<List<ListingModel>> getUserListings(String userId) async {
+    try {
+      QuerySnapshot snapshot = await firestore
+          .collection('listings')
+          .where('sellerId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => ListingModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  Future<List<ListingModel>> getFavoriteListings(String userId) async {
+    try {
+      DocumentSnapshot userDoc = await firestore.collection('users').doc(userId).get();
+      List<dynamic> favorites = userDoc.data() != null
+          ? (userDoc.data() as Map<String, dynamic>)['favorites'] ?? []
+          : [];
+
+      List<ListingModel> listings = [];
+      for (String listingId in favorites) {
+        ListingModel? listing = await getListing(listingId);
+        if (listing != null) {
+          listings.add(listing);
+        }
+      }
+
+      return listings;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  Future<void> addToFavorites(String userId, String listingId) async {
+    try {
+      await firestore.collection('users').doc(userId).update({
+        'favorites': FieldValue.arrayUnion([listingId]),
+      });
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  Future<void> removeFromFavorites(String userId, String listingId) async {
+    try {
+      await firestore.collection('users').doc(userId).update({
+        'favorites': FieldValue.arrayRemove([listingId]),
+      });
+    } catch (e) {
+      throw e;
+    }
   }
 }

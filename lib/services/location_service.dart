@@ -1,89 +1,82 @@
+// lib/services/location_service.dart
+
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'dart:math' show cos, sqrt, asin, pi;
 
 class LocationService {
-  // Get current position
-  Future<Position> getCurrentPosition() async {
-    try {
-      // Check if location services are enabled
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception('Location services are disabled.');
-      }
-
-      // Check location permission
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw Exception('Location permissions are denied.');
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Location permissions are permanently denied.');
-      }
-
-      // Get current position
-      return await Geolocator.getCurrentPosition();
-    } catch (e) {
-      throw Exception('Failed to get current position: $e');
-    }
+  // Check if location services are enabled
+  Future<bool> isLocationServiceEnabled() async {
+    return await Geolocator.isLocationServiceEnabled();
   }
 
-  // Get neighborhood from coordinates
-  Future<String> getNeighborhoodFromCoordinates(double latitude, double longitude) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+  // Check location permission
+  Future<LocationPermission> checkLocationPermission() async {
+    return await Geolocator.checkPermission();
+  }
 
-      if (placemarks.isEmpty) {
-        throw Exception('No placemarks found for the given coordinates.');
-      }
+  // Request location permission
+  Future<LocationPermission> requestLocationPermission() async {
+    return await Geolocator.requestPermission();
+  }
 
-      final placemark = placemarks.first;
-
-      // Try to get neighborhood or sublocality
-      String? neighborhood = placemark.subLocality;
-
-      if (neighborhood == null || neighborhood.isEmpty) {
-        // Fall back to locality (city)
-        neighborhood = placemark.locality;
-      }
-
-      if (neighborhood == null || neighborhood.isEmpty) {
-        // Fall back to administrative area (state/province)
-        neighborhood = placemark.administrativeArea;
-      }
-
-      return neighborhood ?? 'Unknown location';
-    } catch (e) {
-      throw Exception('Failed to get neighborhood: $e');
+  // Get current position
+  Future<Position> getCurrentPosition() async {
+    bool serviceEnabled = await isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled.');
     }
+
+    LocationPermission permission = await checkLocationPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await requestLocationPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permissions are denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Location permissions are permanently denied.');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+  // Get address from coordinates
+  Future<Placemark> getAddressFromCoordinates(double latitude, double longitude) async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+    return placemarks.first;
   }
 
   // Get coordinates from address
-  Future<Position> getCoordinatesFromAddress(String address) async {
-    try {
-      List<Location> locations = await locationFromAddress(address);
+  Future<Location> getCoordinatesFromAddress(String address) async {
+    List<Location> locations = await locationFromAddress(address);
+    return locations.first;
+  }
 
-      if (locations.isEmpty) {
-        throw Exception('No locations found for the given address.');
-      }
+  // Calculate distance between two coordinates in kilometers
+  double calculateDistance(
+      double startLatitude,
+      double startLongitude,
+      double endLatitude,
+      double endLongitude
+      ) {
+    const int earthRadius = 6371; // Earth's radius in kilometers
 
-      final location = locations.first;
+    double latDifference = _degreesToRadians(endLatitude - startLatitude);
+    double lonDifference = _degreesToRadians(endLongitude - startLongitude);
 
-      return Position(
-        latitude: location.latitude,
-        longitude: location.longitude,
-        timestamp: DateTime.now(),
-        accuracy: 0,
-        altitude: 0,
-        heading: 0,
-        speed: 0,
-        speedAccuracy: 0,
-      );
-    } catch (e) {
-      throw Exception('Failed to get coordinates: $e');
-    }
+    double a = sin(latDifference / 2) * sin(latDifference / 2) +
+        cos(_degreesToRadians(startLatitude)) * cos(_degreesToRadians(endLatitude)) *
+            sin(lonDifference / 2) * sin(lonDifference / 2);
+
+    double c = 2 * asin(sqrt(a));
+
+    return earthRadius * c;
+  }
+
+  // Helper method to convert degrees to radians
+  double _degreesToRadians(double degrees) {
+    return degrees * (pi / 180);
   }
 }

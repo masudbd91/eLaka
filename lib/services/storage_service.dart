@@ -1,54 +1,93 @@
-// File: lib/services/storage_service.dart
+// lib/services/storage_service.dart
 
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 class StorageService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseStorage storage;
 
-  // Upload a single image and return the download URL
-  Future<String> uploadImage(File imageFile, String folder) async {
-    // Create a unique filename
-    final String fileName = '${const Uuid().v4()}.jpg';
+  StorageService({FirebaseStorage? storage})
+      : this.storage = storage ?? FirebaseStorage.instance;
 
-    // Create a reference to the file location
-    final Reference ref = _storage.ref().child('$folder/$fileName');
+  // Upload a single listing image
+  Future<String> uploadListingImage(
+      Uint8List imageData,
+      String fileName,
+      String listingId,
+      ) async {
+    try {
+      String uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      Reference ref = storage.ref().child('listings/$listingId/$uniqueFileName');
 
-    // Upload the file
-    final UploadTask uploadTask = ref.putFile(imageFile);
+      UploadTask uploadTask = ref.putData(
+        imageData,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
 
-    // Wait for the upload to complete and get the download URL
-    final TaskSnapshot taskSnapshot = await uploadTask;
-    final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
 
-    return downloadUrl;
-  }
-
-  // Upload multiple images and return a list of download URLs
-  Future<List<String>> uploadImages(List<XFile> images, String folder) async {
-    List<String> imageUrls = [];
-
-    for (var image in images) {
-      final File file = File(image.path);
-      final String url = await uploadImage(file, folder);
-      imageUrls.add(url);
+      return downloadUrl;
+    } catch (e) {
+      throw e;
     }
-
-    return imageUrls;
   }
 
-  // Delete an image by URL
+  // Upload multiple listing images
+  Future<List<String>> uploadMultipleListingImages(
+      List<Uint8List> imagesData,
+      List<String> fileNames,
+      String listingId,
+      ) async {
+    try {
+      List<String> downloadUrls = [];
+
+      for (int i = 0; i < imagesData.length; i++) {
+        String url = await uploadListingImage(
+          imagesData[i],
+          fileNames[i],
+          listingId,
+        );
+        downloadUrls.add(url);
+      }
+
+      return downloadUrls;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Upload profile image
+  Future<String> uploadProfileImage(
+      Uint8List imageData,
+      String fileName,
+      String userId,
+      ) async {
+    try {
+      String uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      Reference ref = storage.ref().child('users/$userId/$uniqueFileName');
+
+      UploadTask uploadTask = ref.putData(
+        imageData,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+
+      TaskSnapshot snapshot = await uploadTask;
+      String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Delete an image
   Future<void> deleteImage(String imageUrl) async {
     try {
-      // Extract the path from the URL
-      final Reference ref = _storage.refFromURL(imageUrl);
-
-      // Delete the file
+      Reference ref = storage.refFromURL(imageUrl);
       await ref.delete();
     } catch (e) {
-      print('Error deleting image: $e');
       throw e;
     }
   }
