@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\android",
+    "\\android\\app",
+    "\\android\\app\\src",
+    "\\android\\app\\src\\main",
+    "\\android\\app\\src\\main\\kotlin",
+    "\\android\\app\\src\\main\\kotlin\\com",
+    "\\android\\app\\src\\main\\kotlin\\com\\example",
+    "\\android\\app\\src\\main\\kotlin\\com\\example\\elaka",
+    "\\lib"
+  ],
+  "SelectedNode": "\\android\\app\\src\\main\\kotlin\\com\\example\\elaka\\MainActivity.kt",
+  "PreviewInSolutionExplorer": false
+}
