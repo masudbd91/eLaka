@@ -1,8 +1,10 @@
+// lib/screens/auth/verification_screen.dart
+
+import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../widgets/common/custom_text_field.dart';
-import '../../widgets/common/primary_button.dart';
-import '../../config/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth_service.dart';
+import '../home/home_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   const VerificationScreen({Key? key}) : super(key: key);
@@ -12,31 +14,68 @@ class VerificationScreen extends StatefulWidget {
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  File? _idDocument;
+  final AuthService _authService = AuthService();
   bool _isLoading = false;
-  bool _verificationSubmitted = false;
+  bool _isEmailVerified = false;
+  Timer? _timer;
+  int _resendTimeout = 0;
+  Timer? _resendTimer;
 
-  Future<void> _pickImage() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+  @override
+  void initState() {
+    super.initState();
+    _checkEmailVerification();
+  }
 
-      if (image != null) {
-        setState(() {
-          _idDocument = File(image.path);
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _resendTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkEmailVerification() async {
+    User? user = _authService.currentUser;
+
+    if (user != null) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Check if email is verified
+      await user.reload();
+      bool isVerified = user.emailVerified;
+
+      setState(() {
+        _isEmailVerified = isVerified;
+        _isLoading = false;
+      });
+
+      if (_isEmailVerified) {
+        // Update verification status in Firestore
+        await _authService.updateVerificationStatus(user.uid, true);
+
+        // Navigate to home screen after a short delay
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
         });
+      } else {
+        // Start timer to check verification status periodically
+        _timer = Timer.periodic(
+          const Duration(seconds: 5),
+              (_) => _checkEmailVerification(),
+        );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
-      );
     }
   }
 
-  Future<void> _submitVerification() async {
-    if (_idDocument == null) {
+  Future<void> _resendVerificationEmail() async {
+    if (_resendTimeout > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an ID document')),
+        SnackBar(content: Text('Please wait $_resendTimeout seconds before requesting again')),
       );
       return;
     }
@@ -46,23 +85,38 @@ class _VerificationScreenState extends State<VerificationScreen> {
     });
 
     try {
-      // Call authentication service
-      await AuthService().verifyUserIdentity(_idDocument!);
+      await _authService.currentUser?.sendEmailVerification();
 
       setState(() {
-        _verificationSubmitted = true;
+        _isLoading = false;
+        _resendTimeout = 60;
       });
-    } catch (e) {
-      // Show error message
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        const SnackBar(content: Text('Verification email sent. Please check your inbox.')),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+
+      // Start countdown timer for resend button
+      _resendTimer = Timer.periodic(
+        const Duration(seconds: 1),
+            (timer) {
+          setState(() {
+            if (_resendTimeout > 0) {
+              _resendTimeout--;
+            } else {
+              _resendTimer?.cancel();
+            }
+          });
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send verification email: ${e.toString()}')),
+      );
     }
   }
 
@@ -70,342 +124,60 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verify Identity'),
+        title: const Text('Email Verification'),
+        automaticallyImplyLeading: false,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: _verificationSubmitted
-              ? _buildVerificationSubmittedContent()
-              : _buildVerificationForm(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 40),
+            Icon(
+              _isEmailVerified ? Icons.check_circle : Icons.email,
+              size: 100,
+              color: _isEmailVerified ? Colors.green : Colors.blue,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              _isEmailVerified
+                  ? 'Email Verified!'
+                  : 'Verify Your Email',
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _isEmailVerified
+                  ? 'Your email has been successfully verified. You will be redirected to the home screen shortly.'
+                  : 'We have sent a verification email to ${_authService.currentUser?.email}. Please check your inbox and click the verification link to complete your registration.',
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 40),
+            if (!_isEmailVerified) ...[
+              ElevatedButton(
+                onPressed: _resendTimeout > 0 ? null : _resendVerificationEmail,
+                child: Text(
+                  _resendTimeout > 0
+                      ? 'Resend Email (${_resendTimeout}s)'
+                      : 'Resend Verification Email',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () async {
+                  await _authService.signOut();
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                },
+                child: const Text('Cancel and Sign Out'),
+              ),
+            ],
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildVerificationForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 24.0),
-        // Title
-        Text(
-          'Verify Your Identity',
-          style: Theme.of(context).textTheme.displaySmall,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8.0),
-        // Description
-        Text(
-          'To ensure a safe community, we need to verify your identity. Please upload a photo of your ID document (passport, driver\'s license, or ID card).',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppTheme.textSecondaryColor,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 40.0),
-        // ID document upload
-        GestureDetector(
-          onTap: _pickImage,
-          child: Container(
-            height: 200.0,
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
-              borderRadius: BorderRadius.circular(12.0),
-              border: Border.all(
-                color: _idDocument != null
-                    ? AppTheme.primaryColor
-                    : AppTheme.dividerColor,
-                width: 2.0,
-              ),
-            ),
-            child: _idDocument != null
-                ? ClipRRect(
-              borderRadius: BorderRadius.circular(10.0),
-              child: Image.file(
-                _idDocument!,
-                fit: BoxFit.cover,
-              ),
-            )
-                : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.add_photo_alternate,
-                  size: 64.0,
-                  color: AppTheme.textSecondaryColor,
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  'Tap to upload ID document',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppTheme.textSecondaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 8.0),
-        // Privacy note
-        Text(
-          'Your ID will be securely stored and only used for verification purposes.',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppTheme.textSecondaryColor,
-            fontStyle: FontStyle.italic,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 40.0),
-        // Submit button
-        PrimaryButton(
-          text: 'Submit for Verification',
-          onPressed: _submitVerification,
-          isLoading: _isLoading,
-        ),
-        const SizedBox(height: 16.0),
-        // Skip for now
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text('Skip for Now'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVerificationSubmittedContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 40.0),
-        // Success icon
-        const Icon(
-          Icons.check_circle,
-          size: 80.0,
-          color: AppTheme.successColor,
-        ),
-        const SizedBox(height: 24.0),
-        // Title
-        Text(
-          'Verification Submitted',
-          style: Theme.of(context).textTheme.displaySmall,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 8.0),
-        // Description
-        Text(
-          'Your verification request has been submitted. We\'ll review your documents and update your account status. This usually takes 1-2 business days.',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppTheme.textSecondaryColor,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 40.0),
-        // Continue button
-        PrimaryButton(
-          text: 'Continue',
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          isLoading: false,
-        ),
-      ],
-    );
-  }
-}
-
-class AuthService {
-  // Current user
-  firebase_auth.User? get currentUser => null;
-
-  // Sign in with email and password
-  Future<firebase_auth.UserCredential> signInWithEmailAndPassword(
-      String email,
-      String password,
-      ) async {
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    // This is a simplified example
-    throw UnimplementedError('This is a code example only');
-  }
-
-  // Register with email and password
-  Future<firebase_auth.UserCredential> registerWithEmailAndPassword(
-      String email,
-      String password,
-      String name,
-      String phoneNumber,
-      String neighborhood,
-      ) async {
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    // This is a simplified example
-    throw UnimplementedError('This is a code example only');
-  }
-
-  // Reset password
-  Future<void> resetPassword(String email) async {
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    // This is a simplified example
-    return;
-  }
-
-  // Verify user identity
-  Future<void> verifyUserIdentity(File idDocument) async {
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    // This is a simplified example
-    return;
-  }
-}
-
-// Location service class (simplified for this example)
-class LocationService {
-  // Get current position
-  Future<Position> getCurrentPosition() async {
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    // This is a simplified example
-    return Position(
-      latitude: 37.7749,
-      longitude: -122.4194,
-      timestamp: DateTime.now(),
-      accuracy: 0,
-      altitude: 0,
-      heading: 0,
-      speed: 0,
-      speedAccuracy: 0,
-    );
-  }
-
-  // Get neighborhood from coordinates
-  Future<String> getNeighborhoodFromCoordinates(double latitude, double longitude) async {
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-
-    // This is a simplified example
-    return 'Sample Neighborhood';
-  }
-}
-
-// Position class (simplified for this example)
-class Position {
-  final double latitude;
-  final double longitude;
-  final DateTime timestamp;
-  final double accuracy;
-  final double altitude;
-  final double heading;
-  final double speed;
-  final double speedAccuracy;
-
-  Position({
-    required this.latitude,
-    required this.longitude,
-    required this.timestamp,
-    required this.accuracy,
-    required this.altitude,
-    required this.heading,
-    required this.speed,
-    required this.speedAccuracy,
-  });
-}
-
-// App theme class (simplified for this example)
-class AppTheme {
-  static const Color primaryColor = Color(0xFFFF7E1D);
-  static const Color successColor = Color(0xFF4CAF50);
-  static const Color textSecondaryColor = Color(0xFF757575);
-  static const Color dividerColor = Color(0xFFEEEEEE);
-  static const Color surfaceColor = Color(0xFFF5F5F5);
-}
-
-// Custom text field widget (simplified for this example)
-class CustomTextField extends StatelessWidget {
-  final String label;
-  final String? hint;
-  final TextEditingController controller;
-  final bool obscureText;
-  final TextInputType keyboardType;
-  final String? Function(String?)? validator;
-  final Widget? prefixIcon;
-  final Widget? suffixIcon;
-
-  const CustomTextField({
-    Key? key,
-    required this.label,
-    this.hint,
-    required this.controller,
-    this.obscureText = false,
-    this.keyboardType = TextInputType.text,
-    this.validator,
-    this.prefixIcon,
-    this.suffixIcon,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8.0),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// Primary button widget (simplified for this example)
-class PrimaryButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
-  final bool isLoading;
-
-  const PrimaryButton({
-    Key? key,
-    required this.text,
-    required this.onPressed,
-    this.isLoading = false,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
-      child: isLoading
-          ? const SizedBox(
-        height: 20,
-        width: 20,
-        child: CircularProgressIndicator(
-          color: Colors.white,
-          strokeWidth: 2.0,
-        ),
-      )
-          : Text(text),
     );
   }
 }

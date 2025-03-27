@@ -1,77 +1,61 @@
-// File: lib/models/user_model.dart
-
-import 'package:cloud_firestore/cloud_firestore.dart';
+// lib/models/user_model.dart
 
 class UserModel {
   final String id;
   final String name;
   final String email;
-  final String phoneNumber;
-  final String neighborhood;
+  final String phone;
+  final bool isVerified;
   final DateTime createdAt;
-  final DateTime lastActive;
+  final DateTime lastLogin;
+  final String profileImageUrl;
+  final String location;
+  final double ratings;
+  final int reviewCount;
 
   UserModel({
     required this.id,
     required this.name,
     required this.email,
-    required this.phoneNumber,
-    required this.neighborhood,
+    required this.phone,
+    required this.isVerified,
     required this.createdAt,
-    required this.lastActive,
+    required this.lastLogin,
+    required this.profileImageUrl,
+    required this.location,
+    required this.ratings,
+    required this.reviewCount,
   });
 
-  // Convert UserModel to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'name': name,
       'email': email,
-      'phoneNumber': phoneNumber,
-      'neighborhood': neighborhood,
-      'createdAt': createdAt.toUtc(),
-      'lastActive': lastActive.toUtc(),
+      'phone': phone,
+      'isVerified': isVerified,
+      'createdAt': createdAt,
+      'lastLogin': lastLogin,
+      'profileImageUrl': profileImageUrl,
+      'location': location,
+      'ratings': ratings,
+      'reviewCount': reviewCount,
     };
   }
 
-  // Create UserModel from Firestore document
-  factory UserModel.fromMap(Map<String, dynamic> map, String documentId) {
+  factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      id: documentId,
+      id: map['id'] ?? '',
       name: map['name'] ?? '',
       email: map['email'] ?? '',
-      phoneNumber: map['phoneNumber'] ?? '',
-      neighborhood: map['neighborhood'] ?? '',
-      createdAt: map['createdAt'] != null
-          ? (map['createdAt'] is Timestamp
-          ? (map['createdAt'] as Timestamp).toDate()
-          : DateTime.parse(map['createdAt'].toString()))
-          : DateTime.now(),
-      lastActive: map['lastActive'] != null
-          ? (map['lastActive'] is Timestamp
-          ? (map['lastActive'] as Timestamp).toDate()
-          : DateTime.parse(map['lastActive'].toString()))
-          : DateTime.now(),
-    );
-  }
-
-  // Create a copy of this UserModel with given fields replaced with new values
-  UserModel copyWith({
-    String? id,
-    String? name,
-    String? email,
-    String? phoneNumber,
-    String? neighborhood,
-    DateTime? createdAt,
-    DateTime? lastActive,
-  }) {
-    return UserModel(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      email: email ?? this.email,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      neighborhood: neighborhood ?? this.neighborhood,
-      createdAt: createdAt ?? this.createdAt,
-      lastActive: lastActive ?? this.lastActive,
+      phone: map['phone'] ?? '',
+      isVerified: map['isVerified'] ?? false,
+      createdAt: map['createdAt']?.toDate() ?? DateTime.now(),
+      lastLogin: map['lastLogin']?.toDate() ?? DateTime.now(),
+      profileImageUrl: map['profileImageUrl'] ?? '',
+      location: map['location'] ?? '',
+      ratings: (map['ratings'] ?? 0).toDouble(),
+      reviewCount: map['reviewCount'] ?? 0,
     );
   }
 }

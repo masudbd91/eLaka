@@ -1,123 +1,205 @@
-// File: lib/services/auth_service.dart
+// lib/services/auth_service.dart
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
-import 'database_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseService _databaseService = DatabaseService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Convert Firebase User to our custom UserModel
-  UserModel? _userFromFirebaseUser(User? user) {
-    if (user == null) return null;
+  // Get current user
+  User? get currentUser => _auth.currentUser;
 
-    return UserModel(
-      id: user.uid,
-      name: user.displayName ?? 'User',
-      email: user.email ?? '',
-      phoneNumber: user.phoneNumber ?? '',
-      neighborhood: '',  // This would be fetched from Firestore
-      createdAt: DateTime.now(),
-      lastActive: DateTime.now(),
-    );
-  }
-
-  // Auth state changes stream
-  Stream<UserModel?> get user {
-    return _auth.authStateChanges().map(_userFromFirebaseUser);
-  }
+  // Stream of auth changes
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   // Sign in with email and password
-  Future<UserModel?> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential result = await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      User? user = result.user;
 
-      // Update last active timestamp
-      if (user != null) {
-        await _databaseService.updateUserData(
-          uid: user.uid,
-          name: user.displayName ?? 'User',
-          email: user.email ?? '',
-          phoneNumber: user.phoneNumber ?? '',
-          neighborhood: '',  // This would be fetched from Firestore
-        );
-      }
+      // Update last login timestamp
+      await _firestore.collection('users').doc(userCredential.user!.uid).update({
+        'lastLogin': FieldValue.serverTimestamp(),
+      });
 
-      return _userFromFirebaseUser(user);
+      return userCredential;
     } catch (e) {
-      print('Error signing in: $e');
-      return null;
+      throw e;
     }
   }
 
   // Register with email and password
-  Future<UserModel?> registerWithEmailAndPassword(
-      String email,
-      String password,
-      String name,
-      String phoneNumber,
-      String neighborhood,
-      ) async {
+  Future<UserCredential> registerWithEmailAndPassword(
+      String email, String password, String name, String phone) async {
     try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      User? user = result.user;
 
-      // Update display name
-      await user?.updateDisplayName(name);
+      // Create user profile in Firestore
+      UserModel newUser = UserModel(
+        id: userCredential.user!.uid,
+        name: name,
+        email: email,
+        phone: phone,
+        isVerified: false,
+        createdAt: DateTime.now(),
+        lastLogin: DateTime.now(),
+        profileImageUrl: '',
+        location: '',
+        ratings: 0,
+        reviewCount: 0,
+      );
 
-      // Create a new user document in Firestore
-      if (user != null) {
-        await _databaseService.updateUserData(
-          uid: user.uid,
-          name: name,
-          email: email,
-          phoneNumber: phoneNumber,
-          neighborhood: neighborhood,
-        );
-      }
+      await _firestore.collection('users').doc(userCredential.user!.uid).set(newUser.toMap());
 
-      return _userFromFirebaseUser(user);
+      // Send email verification
+      await userCredential.user!.sendEmailVerification();
+
+      return userCredential;
     } catch (e) {
-      print('Error registering: $e');
-      return null;
+      throw e;
+    }
+  }
+
+  // Send password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw e;
     }
   }
 
   // Sign out
   Future<void> signOut() async {
     try {
-      return await _auth.signOut();
+      await _auth.signOut();
+      // Clear local storage
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
     } catch (e) {
-      print('Error signing out: $e');
-      return;
+      throw e;
     }
   }
 
-  // Reset password
-  Future<void> resetPassword(String email) async {
+  // Check if user is verified
+  Future<bool> isUserVerified() async {
     try {
-      return await _auth.sendPasswordResetEmail(email: email);
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await user.reload();
+        return user.emailVerified;
+      }
+      return false;
     } catch (e) {
-      print('Error resetting password: $e');
-      return;
+      return false;
     }
   }
 
-  // Get current user
-  UserModel? get currentUser {
-    return _userFromFirebaseUser(_auth.currentUser);
+  // Verify phone number
+  Future<void> verifyPhoneNumber(
+      String phoneNumber,
+      Function(PhoneAuthCredential) verificationCompleted,
+      Function(FirebaseAuthException) verificationFailed,
+      Function(String, int?) codeSent,
+      Function(String) codeAutoRetrievalTimeout,
+      ) async {
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: verificationCompleted,
+      verificationFailed: verificationFailed,
+      codeSent: codeSent,
+      codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+      timeout: const Duration(seconds: 60),
+    );
   }
 
-  // Get current user ID
-  String? get currentUserId {
-    return _auth.currentUser?.uid;
+  // Verify with code
+  Future<UserCredential> verifyWithCode(String verificationId, String smsCode) async {
+    try {
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode,
+      );
+      return await _auth.signInWithCredential(credential);
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Update user verification status
+  Future<void> updateVerificationStatus(String userId, bool isVerified) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'isVerified': isVerified,
+      });
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Get user data from Firestore
+  Future<UserModel?> getUserData(String userId) async {
+    try {
+      DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+      if (doc.exists) {
+        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Update user profile
+  Future<void> updateUserProfile(String userId, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection('users').doc(userId).update(data);
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Delete user account
+  Future<void> deleteAccount() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        // Delete user data from Firestore
+        await _firestore.collection('users').doc(user.uid).delete();
+
+        // Delete user authentication
+        await user.delete();
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Convert Firebase User to UserModel
+  UserModel? _userFromFirebaseUser(User? user) {
+    if (user == null) return null;
+
+    return UserModel(
+      id: user.uid,
+      name: user.displayName ?? '',
+      email: user.email ?? '',
+      phone: user.phoneNumber ?? '',
+      isVerified: user.emailVerified,
+      createdAt: DateTime.now(),
+      lastLogin: DateTime.now(),
+      profileImageUrl: user.photoURL ?? '',
+      location: '',
+      ratings: 0,
+      reviewCount: 0,
+    );
   }
 }
