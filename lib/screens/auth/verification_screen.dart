@@ -7,7 +7,7 @@ import '../../services/auth_service.dart';
 import '../home/home_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
-  const VerificationScreen({Key? key}) : super(key: key);
+  const VerificationScreen({super.key});
 
   @override
   _VerificationScreenState createState() => _VerificationScreenState();

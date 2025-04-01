@@ -6,10 +6,10 @@ import 'config/routes.dart';
 import 'config/theme.dart';
 import 'services/auth_service.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/home/home_screens.dart';
+import 'screens/home/home_screen.dart';
 
 class App extends StatelessWidget {
-  const App({Key? key}) : super(key: key);
+  const App({super.key});
 
   get appRoutes => null;
 

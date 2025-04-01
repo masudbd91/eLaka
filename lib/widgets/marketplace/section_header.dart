@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../config/theme.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onSeeAll;
 
   const SectionHeader({
-    Key? key,
+    super.key,
     required this.title,
     this.onSeeAll,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

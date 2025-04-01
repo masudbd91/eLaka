@@ -6,10 +6,10 @@ class PopularSearchTerms extends StatelessWidget {
   final Function(String) onTermSelected;
 
   const PopularSearchTerms({
-    Key? key,
+    super.key,
     required this.terms,
     required this.onTermSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

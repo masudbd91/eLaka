@@ -4,7 +4,6 @@ import 'package:mockito/mockito.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:elaka/services/database_service.dart';
 import 'package:elaka/models/listing_model.dart';
-import 'package:elaka/models/category_model.dart';
 
 class MockDatabaseService extends Mock implements DatabaseService {}
 

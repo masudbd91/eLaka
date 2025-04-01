@@ -30,7 +30,7 @@ class AuthService {
 
       return userCredential;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -65,7 +65,7 @@ class AuthService {
 
       return userCredential;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -74,7 +74,7 @@ class AuthService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -86,7 +86,7 @@ class AuthService {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -131,7 +131,7 @@ class AuthService {
       );
       return await _auth.signInWithCredential(credential);
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -142,7 +142,7 @@ class AuthService {
         'isVerified': isVerified,
       });
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -155,7 +155,7 @@ class AuthService {
       }
       return null;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -164,7 +164,7 @@ class AuthService {
     try {
       await _firestore.collection('users').doc(userId).update(data);
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -180,7 +180,7 @@ class AuthService {
         await user.delete();
       }
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 

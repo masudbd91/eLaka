@@ -14,7 +14,7 @@ class ChatListItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const ChatListItem({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     required this.imageUrl,
@@ -22,7 +22,7 @@ class ChatListItem extends StatelessWidget {
     required this.unreadCount,
     required this.isVerified,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

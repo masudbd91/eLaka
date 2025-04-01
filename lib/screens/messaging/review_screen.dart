@@ -10,11 +10,11 @@ class ReviewScreen extends StatefulWidget {
   final String transactionId;
 
   const ReviewScreen({
-    Key? key,
+    super.key,
     required this.userId,
     required this.listingId,
     required this.transactionId,
-  }) : super(key: key);
+  });
 
   @override
   _ReviewScreenState createState() => _ReviewScreenState();

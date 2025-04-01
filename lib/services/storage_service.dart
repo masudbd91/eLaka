@@ -2,13 +2,12 @@
 
 import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:uuid/uuid.dart';
 
 class StorageService {
   final FirebaseStorage storage;
 
   StorageService({FirebaseStorage? storage})
-      : this.storage = storage ?? FirebaseStorage.instance;
+      : storage = storage ?? FirebaseStorage.instance;
 
   // Upload a single listing image
   Future<String> uploadListingImage(
@@ -30,7 +29,7 @@ class StorageService {
 
       return downloadUrl;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -54,7 +53,7 @@ class StorageService {
 
       return downloadUrls;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -78,7 +77,7 @@ class StorageService {
 
       return downloadUrl;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -88,7 +87,7 @@ class StorageService {
       Reference ref = storage.refFromURL(imageUrl);
       await ref.delete();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }
