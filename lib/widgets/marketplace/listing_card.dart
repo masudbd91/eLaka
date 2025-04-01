@@ -11,7 +11,7 @@ class ListingCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const ListingCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.price,
     required this.location,
@@ -19,7 +19,7 @@ class ListingCard extends StatelessWidget {
     required this.imageUrl,
     this.isSold = false,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

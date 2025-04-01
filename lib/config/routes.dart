@@ -70,6 +70,7 @@ class AppRoutes {
         return MaterialPageRoute(
           builder: (_) => ChatDetailScreen(
             chatId: args['chatId'],
+            otherParticipantName: '',
           ),
         );
       case offer:

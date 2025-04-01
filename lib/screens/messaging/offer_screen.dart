@@ -10,11 +10,11 @@ class OfferScreen extends StatefulWidget {
   final double originalPrice;
 
   const OfferScreen({
-    Key? key,
+    super.key,
     required this.chatId,
     required this.listingId,
     required this.originalPrice,
-  }) : super(key: key);
+  });
 
   @override
   _OfferScreenState createState() => _OfferScreenState();

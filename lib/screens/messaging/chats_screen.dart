@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class ChatsScreen extends StatefulWidget {
-  const ChatsScreen({Key? key}) : super(key: key);
+  const ChatsScreen({super.key});
 
   @override
   _ChatsScreenState createState() => _ChatsScreenState();
@@ -14,7 +14,7 @@ class ChatsScreen extends StatefulWidget {
 class _ChatsScreenState extends State<ChatsScreen> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _chats = [];
-  int _currentIndex = 3; // Chats tab
+  final int _currentIndex = 3; // Chats tab
 
   @override
   void initState() {

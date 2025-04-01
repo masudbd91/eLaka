@@ -49,7 +49,7 @@ class MessagingService {
 
       return chatRef.id;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -87,7 +87,7 @@ class MessagingService {
         'unreadBy': otherParticipants,
       });
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -131,7 +131,7 @@ class MessagingService {
         });
       }
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -151,7 +151,7 @@ class MessagingService {
       List<dynamic> participants = chatDoc.data()?['participants'] ?? [];
       return participants.where((id) => id != currentUserId).cast<String>().toList();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }

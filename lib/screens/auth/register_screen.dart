@@ -8,7 +8,7 @@ import 'verification_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
@@ -196,10 +196,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _register,
-                child: const Text('Register'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
+                child: const Text('Register'),
               ),
               const SizedBox(height: 16),
               Row(

@@ -10,9 +10,9 @@ class ListingDetailScreen extends StatefulWidget {
   final String listingId;
 
   const ListingDetailScreen({
-    Key? key,
+    super.key,
     required this.listingId,
-  }) : super(key: key);
+  });
 
   @override
   State<ListingDetailScreen> createState() => _ListingDetailScreenState();

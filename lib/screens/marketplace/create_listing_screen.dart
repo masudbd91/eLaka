@@ -9,11 +9,9 @@ import '../../models/listing_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../services/storage_service.dart';
-import '../../widgets/common/custom_text_field.dart';
-import '../../widgets/common/primary_button.dart';
 
 class CreateListingScreen extends StatefulWidget {
-  const CreateListingScreen({Key? key}) : super(key: key);
+  const CreateListingScreen({super.key});
 
   @override
   State<CreateListingScreen> createState() => _CreateListingScreenState();
@@ -27,8 +25,8 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
   final _locationController = TextEditingController();
   final _tagsController = TextEditingController();
 
-  String _selectedCategory = '';
-  String _selectedSubcategory = '';
+  final String _selectedCategory = '';
+  final String _selectedSubcategory = '';
   List<XFile> _selectedImages = [];
   bool _isSubmitting = false;
 
@@ -41,7 +39,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
     // ... (same as before)
   ];
 
-  List<String> _subcategories = [];
+  final List<String> _subcategories = [];
 
   @override
   void initState() {

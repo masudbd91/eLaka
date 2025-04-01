@@ -3,20 +3,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/listing_model.dart';
 import '../models/category_model.dart';
-import '../models/user_model.dart';
 
 class DatabaseService {
   final FirebaseFirestore firestore;
 
   DatabaseService({FirebaseFirestore? firestore})
-      : this.firestore = firestore ?? FirebaseFirestore.instance;
+      : firestore = firestore ?? FirebaseFirestore.instance;
 
   // Listings Methods
   Future<void> createListing(ListingModel listing) async {
     try {
       await firestore.collection('listings').doc(listing.id).set(listing.toMap());
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -28,7 +27,7 @@ class DatabaseService {
       }
       return null;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -45,7 +44,7 @@ class DatabaseService {
           .map((doc) => ListingModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -68,7 +67,7 @@ class DatabaseService {
           listing.description.toLowerCase().contains(query.toLowerCase())
       ).toList();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -78,7 +77,7 @@ class DatabaseService {
         'status': status,
       });
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -86,7 +85,7 @@ class DatabaseService {
     try {
       await firestore.collection('listings').doc(listingId).delete();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -98,7 +97,7 @@ class DatabaseService {
           .map((doc) => CategoryModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -115,7 +114,7 @@ class DatabaseService {
           .map((doc) => ListingModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -136,7 +135,7 @@ class DatabaseService {
 
       return listings;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -146,7 +145,7 @@ class DatabaseService {
         'favorites': FieldValue.arrayUnion([listingId]),
       });
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -156,7 +155,7 @@ class DatabaseService {
         'favorites': FieldValue.arrayRemove([listingId]),
       });
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }

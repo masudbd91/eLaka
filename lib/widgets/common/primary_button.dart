@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../config/theme.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
@@ -8,12 +7,12 @@ class PrimaryButton extends StatelessWidget {
   final bool fullWidth;
 
   const PrimaryButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
     this.fullWidth = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

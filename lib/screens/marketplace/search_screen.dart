@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({Key? key}) : super(key: key);
+  const SearchScreen({super.key});
 
   @override
   _SearchScreenState createState() => _SearchScreenState();
@@ -192,10 +192,10 @@ class SearchResultsScreen extends StatefulWidget {
   final String? category;
 
   const SearchResultsScreen({
-    Key? key,
+    super.key,
     this.query,
     this.category,
-  }) : super(key: key);
+  });
 
   @override
   _SearchResultsScreenState createState() => _SearchResultsScreenState();

@@ -12,7 +12,7 @@ import '../../widgets/marketplace/popular_search_terms.dart';
 import '../../widgets/common/custom_bottom_navigation_bar.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
