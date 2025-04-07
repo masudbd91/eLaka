@@ -1,8 +1,7 @@
+import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import '../../widgets/common/custom_text_field.dart';
-import '../../widgets/common/primary_button.dart';
-import '../../config/theme.dart';
-import '../../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -60,9 +59,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: _resetSent
-              ? _buildResetSentContent()
-              : _buildResetForm(),
+          child: _resetSent ? _buildResetSentContent() : _buildResetForm(),
         ),
       ),
     );
@@ -93,8 +90,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Text(
             'Enter your email address and we\'ll send you a link to reset your password.',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppTheme.textSecondaryColor,
-            ),
+                  color: AppTheme.textSecondaryColor,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40.0),
@@ -109,7 +106,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               if (value == null || value.isEmpty) {
                 return 'Please enter your email';
               }
-              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                  .hasMatch(value)) {
                 return 'Please enter a valid email';
               }
               return null;
@@ -158,8 +156,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Text(
           'We\'ve sent a password reset link to ${_emailController.text}. Please check your email and follow the instructions to reset your password.',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppTheme.textSecondaryColor,
-          ),
+                color: AppTheme.textSecondaryColor,
+              ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 40.0),
@@ -181,25 +179,25 @@ class AuthService {
   firebase_auth.User? get currentUser => null;
 
   // Sign in with email and password
-  Future<firebase_auth.UserCredential> signInWithEmailAndPassword(
-      String email,
-      String password,
-      ) async {
+  Future<firebase_auth.User?> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     // Simulate API call
     await Future.delayed(const Duration(seconds: 1));
 
     // This is a simplified example
-    throw UnimplementedError('This is a code example only');
+    return null;
   }
 
   // Register with email and password
   Future<firebase_auth.UserCredential> registerWithEmailAndPassword(
-      String email,
-      String password,
-      String name,
-      String phoneNumber,
-      String neighborhood,
-      ) async {
+    String email,
+    String password,
+    String name,
+    String phoneNumber,
+    String neighborhood,
+  ) async {
     // Simulate API call
     await Future.delayed(const Duration(seconds: 1));
 
@@ -247,7 +245,8 @@ class LocationService {
   }
 
   // Get neighborhood from coordinates
-  Future<String> getNeighborhoodFromCoordinates(double latitude, double longitude) async {
+  Future<String> getNeighborhoodFromCoordinates(
+      double latitude, double longitude) async {
     // Simulate API call
     await Future.delayed(const Duration(seconds: 1));
 
@@ -319,8 +318,8 @@ class CustomTextField extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 8.0),
         TextFormField(
@@ -358,13 +357,13 @@ class PrimaryButton extends StatelessWidget {
       onPressed: isLoading ? null : onPressed,
       child: isLoading
           ? const SizedBox(
-        height: 20,
-        width: 20,
-        child: CircularProgressIndicator(
-          color: Colors.white,
-          strokeWidth: 2.0,
-        ),
-      )
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 2.0,
+              ),
+            )
           : Text(text),
     );
   }

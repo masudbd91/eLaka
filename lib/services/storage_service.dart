@@ -1,6 +1,7 @@
 // lib/services/storage_service.dart
 
 import 'dart:typed_data';
+import 'package:cross_file/src/types/interface.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class StorageService {
@@ -11,13 +12,15 @@ class StorageService {
 
   // Upload a single listing image
   Future<String> uploadListingImage(
-      Uint8List imageData,
-      String fileName,
-      String listingId,
-      ) async {
+    Uint8List imageData,
+    String fileName,
+    String listingId,
+  ) async {
     try {
-      String uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
-      Reference ref = storage.ref().child('listings/$listingId/$uniqueFileName');
+      String uniqueFileName =
+          '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      Reference ref =
+          storage.ref().child('listings/$listingId/$uniqueFileName');
 
       UploadTask uploadTask = ref.putData(
         imageData,
@@ -35,10 +38,10 @@ class StorageService {
 
   // Upload multiple listing images
   Future<List<String>> uploadMultipleListingImages(
-      List<Uint8List> imagesData,
-      List<String> fileNames,
-      String listingId,
-      ) async {
+    List<Uint8List> imagesData,
+    List<String> fileNames,
+    String listingId,
+  ) async {
     try {
       List<String> downloadUrls = [];
 
@@ -59,12 +62,13 @@ class StorageService {
 
   // Upload profile image
   Future<String> uploadProfileImage(
-      Uint8List imageData,
-      String fileName,
-      String userId,
-      ) async {
+    Uint8List imageData,
+    String fileName,
+    String userId,
+  ) async {
     try {
-      String uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      String uniqueFileName =
+          '${DateTime.now().millisecondsSinceEpoch}_$fileName';
       Reference ref = storage.ref().child('users/$userId/$uniqueFileName');
 
       UploadTask uploadTask = ref.putData(
@@ -90,4 +94,6 @@ class StorageService {
       rethrow;
     }
   }
+
+  uploadImages(List<XFile> selectedImages, String s) {}
 }

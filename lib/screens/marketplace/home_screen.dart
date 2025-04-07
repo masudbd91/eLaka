@@ -5,7 +5,6 @@ import '../../models/listing_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../widgets/marketplace/listing_card.dart';
-import '../../widgets/marketplace/search_bar.dart';
 import '../../widgets/marketplace/section_header.dart';
 import '../../widgets/marketplace/category_card.dart';
 import '../../widgets/marketplace/popular_search_terms.dart';
@@ -109,8 +108,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _getTimeAgo(DateTime dateTime) {
-    // ... (same as before)
+  String? _getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inSeconds < 60) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} minutes ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inDays < 30) {
+      return '${(difference.inDays / 7).floor()} weeks ago';
+    } else {
+      return '${(difference.inDays / 30).floor()} months ago';
+    }
   }
 
   @override
@@ -144,10 +160,20 @@ class _HomeScreenState extends State<HomeScreen> {
               // Search bar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: SearchBar(
+                child: TextField(
                   controller: _searchController,
-                  onSearch: _onSearchSubmitted,
-                  hintText: 'What are you looking for?',
+                  decoration: InputDecoration(
+                    hintText: 'What are you looking for?',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12.0, horizontal: 16.0),
+                  ),
+                  onSubmitted: (value) {
+                    _onSearchSubmitted(value);
+                  },
                 ),
               ),
               const SizedBox(height: 16.0),
@@ -209,50 +235,53 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 8.0),
               _isLoading
                   ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
                   : _listings.isEmpty
-                  ? const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: Text(
-                    'No listings available yet. Be the first to create one!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              )
-                  : GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 12.0,
-                  mainAxisSpacing: 12.0,
-                ),
-                itemCount: _listings.length,
-                itemBuilder: (context, index) {
-                  final listing = _listings[index];
-                  return ListingCard(
-                    title: listing.title,
-                    price: listing.price == 0
-                        ? 'Free'
-                        : '\$${listing.price.toStringAsFixed(listing.price.truncateToDouble() == listing.price ? 0 : 2)}',
-                    location: listing.neighborhood,
-                    timePosted: _getTimeAgo(listing.createdAt),
-                    imageUrl: listing.imageUrls.isNotEmpty ? listing.imageUrls[0] : '',
-                    isSold: listing.status == ListingStatus.sold,
-                    onTap: () => _onListingTap(listing),
-                  );
-                },
-              ),
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(32.0),
+                            child: Text(
+                              'No listings available yet. Be the first to create one!',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        )
+                      : GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.75,
+                            crossAxisSpacing: 12.0,
+                            mainAxisSpacing: 12.0,
+                          ),
+                          itemCount: _listings.length,
+                          itemBuilder: (context, index) {
+                            final listing = _listings[index];
+                            return ListingCard(
+                              title: listing.title,
+                              price: listing.price == 0
+                                  ? 'Free'
+                                  : '\$${listing.price.toStringAsFixed(listing.price.truncateToDouble() == listing.price ? 0 : 2)}',
+                              location: listing.neighborhood,
+                              timePosted: _getTimeAgo(listing.createdAt) ?? '',
+                              imageUrl: listing.imageUrls.isNotEmpty
+                                  ? listing.imageUrls[0]
+                                  : '',
+                              isSold: listing.status == ListingStatus.sold,
+                              onTap: () => _onListingTap(listing),
+                            );
+                          },
+                        ),
               const SizedBox(height: 24.0),
             ],
           ),

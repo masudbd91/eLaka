@@ -1,6 +1,7 @@
 // lib/services/database_service.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/listing_model.dart';
 import '../models/category_model.dart';
 
@@ -13,7 +14,10 @@ class DatabaseService {
   // Listings Methods
   Future<void> createListing(ListingModel listing) async {
     try {
-      await firestore.collection('listings').doc(listing.id).set(listing.toMap());
+      await firestore
+          .collection('listings')
+          .doc(listing.id)
+          .set(listing.toMap());
     } catch (e) {
       rethrow;
     }
@@ -21,9 +25,10 @@ class DatabaseService {
 
   Future<ListingModel?> getListing(String listingId) async {
     try {
-      DocumentSnapshot doc = await firestore.collection('listings').doc(listingId).get();
+      DocumentSnapshot doc =
+          await firestore.collection('listings').doc(listingId).get();
       if (doc.exists) {
-        return ListingModel.fromMap(doc.data() as Map<String, dynamic>);
+        return ListingModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }
       return null;
     } catch (e) {
@@ -41,7 +46,8 @@ class DatabaseService {
           .get();
 
       return snapshot.docs
-          .map((doc) => ListingModel.fromMap(doc.data() as Map<String, dynamic>))
+          .map((doc) =>
+              ListingModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       rethrow;
@@ -58,14 +64,16 @@ class DatabaseService {
           .get();
 
       List<ListingModel> listings = snapshot.docs
-          .map((doc) => ListingModel.fromMap(doc.data() as Map<String, dynamic>))
+          .map((doc) =>
+              ListingModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
 
       // Filter listings by query
-      return listings.where((listing) =>
-      listing.title.toLowerCase().contains(query.toLowerCase()) ||
-          listing.description.toLowerCase().contains(query.toLowerCase())
-      ).toList();
+      return listings
+          .where((listing) =>
+              listing.title.toLowerCase().contains(query.toLowerCase()) ||
+              listing.description.toLowerCase().contains(query.toLowerCase()))
+          .toList();
     } catch (e) {
       rethrow;
     }
@@ -94,7 +102,8 @@ class DatabaseService {
     try {
       QuerySnapshot snapshot = await firestore.collection('categories').get();
       return snapshot.docs
-          .map((doc) => CategoryModel.fromMap(doc.data() as Map<String, dynamic>))
+          .map((doc) =>
+              CategoryModel.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
       rethrow;
@@ -111,7 +120,8 @@ class DatabaseService {
           .get();
 
       return snapshot.docs
-          .map((doc) => ListingModel.fromMap(doc.data() as Map<String, dynamic>))
+          .map((doc) =>
+              ListingModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
       rethrow;
@@ -120,7 +130,8 @@ class DatabaseService {
 
   Future<List<ListingModel>> getFavoriteListings(String userId) async {
     try {
-      DocumentSnapshot userDoc = await firestore.collection('users').doc(userId).get();
+      DocumentSnapshot userDoc =
+          await firestore.collection('users').doc(userId).get();
       List<dynamic> favorites = userDoc.data() != null
           ? (userDoc.data() as Map<String, dynamic>)['favorites'] ?? []
           : [];
@@ -158,4 +169,19 @@ class DatabaseService {
       rethrow;
     }
   }
+
+  getUserData(User userId) {}
+
+  getAllListings() {}
+
+  getListingById(String listingId) {}
+
+  getListings({String? query, String? category, required int limit}) {}
+
+  getChats() {}
+
+  sendOffer(String chatId, String listingId, double price, String trim) {}
+
+  submitReview(String userId, String listingId, String transactionId,
+      int rating, String trim) {}
 }

@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../config/theme.dart';
+
 class MessageBubble extends StatelessWidget {
   final String message;
   final String? imageUrl;

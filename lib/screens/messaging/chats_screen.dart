@@ -4,6 +4,11 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../config/theme.dart';
+import '../../services/database_service.dart';
+import '../../widgets/common/custom_bottom_navigation_bar.dart';
+import '../../widgets/messaging/chat_list_item.dart';
+
 class ChatsScreen extends StatefulWidget {
   const ChatsScreen({super.key});
 
@@ -68,7 +73,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
         Navigator.of(context).pushNamed('/create-listing');
         break;
       case 3: // Chats
-      // Already on chats screen
+        // Already on chats screen
         break;
       case 4: // Profile
         Navigator.of(context).pushNamed('/profile');
@@ -85,25 +90,26 @@ class _ChatsScreenState extends State<ChatsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _chats.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-        onRefresh: _loadData,
-        child: ListView.builder(
-          itemCount: _chats.length,
-          itemBuilder: (context, index) {
-            final chat = _chats[index];
-            return ChatListItem(
-              title: chat['otherUserName'],
-              subtitle: chat['lastMessage'],
-              imageUrl: chat['otherUserImageUrl'],
-              time: _getTimeAgo(DateTime.parse(chat['lastMessageTime'])),
-              unreadCount: chat['unreadCount'],
-              isVerified: chat['isOtherUserVerified'],
-              onTap: () => _onChatTap(chat),
-            );
-          },
-        ),
-      ),
+              ? _buildEmptyState()
+              : RefreshIndicator(
+                  onRefresh: _loadData,
+                  child: ListView.builder(
+                    itemCount: _chats.length,
+                    itemBuilder: (context, index) {
+                      final chat = _chats[index];
+                      return ChatListItem(
+                        title: chat['otherUserName'],
+                        subtitle: chat['lastMessage'],
+                        imageUrl: chat['otherUserImageUrl'],
+                        time: _getTimeAgo(
+                            DateTime.parse(chat['lastMessageTime'])),
+                        unreadCount: chat['unreadCount'],
+                        isVerified: chat['isOtherUserVerified'],
+                        onTap: () => _onChatTap(chat),
+                      );
+                    },
+                  ),
+                ),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: _onBottomNavTap,
@@ -130,8 +136,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
           Text(
             'Start a conversation by contacting a seller',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppTheme.textSecondaryColor,
-            ),
+                  color: AppTheme.textSecondaryColor,
+                ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24.0),

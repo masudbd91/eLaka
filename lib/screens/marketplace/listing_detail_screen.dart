@@ -59,7 +59,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   void _nextImage() {
     if (_listing != null && _listing!.imageUrls.length > 1) {
       setState(() {
-        _currentImageIndex = (_currentImageIndex + 1) % _listing!.imageUrls.length;
+        _currentImageIndex =
+            (_currentImageIndex + 1) % _listing!.imageUrls.length;
       });
     }
   }
@@ -67,7 +68,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   void _previousImage() {
     if (_listing != null && _listing!.imageUrls.length > 1) {
       setState(() {
-        _currentImageIndex = (_currentImageIndex - 1 + _listing!.imageUrls.length) % _listing!.imageUrls.length;
+        _currentImageIndex =
+            (_currentImageIndex - 1 + _listing!.imageUrls.length) %
+                _listing!.imageUrls.length;
       });
     }
   }
@@ -96,7 +99,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       appBar: AppBar(
         title: Text(_listing?.title ?? 'Listing Details'),
         actions: [
-          if (_listing != null && _listing!.sellerId == _authService.currentUserId)
+          if (_listing != null &&
+              _listing!.sellerId == _authService.currentUser)
             PopupMenuButton<String>(
               onSelected: (value) {
                 if (value == 'edit') {
@@ -111,7 +115,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                     context: context,
                     builder: (context) => AlertDialog(
                       title: const Text('Delete Listing'),
-                      content: const Text('Are you sure you want to delete this listing?'),
+                      content: const Text(
+                          'Are you sure you want to delete this listing?'),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
@@ -146,313 +151,338 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _listing == null
-          ? const Center(child: Text('Listing not found'))
-          : SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image carousel
-            Stack(
-              children: [
-                AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: _listing!.imageUrls.isEmpty
-                      ? Container(
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: Icon(
-                        Icons.image_not_supported,
-                        size: 64.0,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  )
-                      : Image.network(
-                    _listing!.imageUrls[_currentImageIndex],
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        color: Colors.grey[300],
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: Icon(
-                            Icons.error_outline,
-                            size: 64.0,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                if (_listing!.imageUrls.length > 1)
-                  Positioned.fill(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.white,
-                          ),
-                          onPressed: _previousImage,
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.white,
-                          ),
-                          onPressed: _nextImage,
-                        ),
-                      ],
-                    ),
-                  ),
-                // Image counter
-                if (_listing!.imageUrls.length > 1)
-                  Positioned(
-                    bottom: 8.0,
-                    right: 8.0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: Text(
-                        '${_currentImageIndex + 1}/${_listing!.imageUrls.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            // Listing details
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title and price
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ? const Center(child: Text('Listing not found'))
+              : SingleChildScrollView(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          _listing!.title,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+                      // Image carousel
+                      Stack(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 4 / 3,
+                            child: _listing!.imageUrls.isEmpty
+                                ? Container(
+                                    color: Colors.grey[300],
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.image_not_supported,
+                                        size: 64.0,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  )
+                                : Image.network(
+                                    _listing!.imageUrls[_currentImageIndex],
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        color: Colors.grey[300],
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[300],
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.error_outline,
+                                            size: 64.0,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                           ),
-                        ),
-                      ),
-                      Text(
-                        _listing!.price == 0
-                            ? 'Free'
-                            : '\$${_listing!.price.toStringAsFixed(_listing!.price.truncateToDouble() == _listing!.price ? 0 : 2)}',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8.0),
-                  // Location and time
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 16.0,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4.0),
-                      Text(
-                        _listing!.neighborhood,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(width: 16.0),
-                      const Icon(
-                        Icons.access_time,
-                        size: 16.0,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 4.0),
-                      Text(
-                        _getTimeAgo(_listing!.createdAt),
-                        style: const TextStyle(
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16.0),
-                  // Category and subcategory
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                        child: Text(
-                          _listing!.category,
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      if (_listing!.subcategory.isNotEmpty) ...[
-                        const SizedBox(width: 8.0),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 4.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                          child: Text(
-                            _listing!.subcategory,
-                            style: const TextStyle(
-                              color: Colors.grey,
+                          if (_listing!.imageUrls.length > 1)
+                            Positioned.fill(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.arrow_back_ios,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: _previousImage,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.arrow_forward_ios,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: _nextImage,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                          // Image counter
+                          if (_listing!.imageUrls.length > 1)
+                            Positioned(
+                              bottom: 8.0,
+                              right: 8.0,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                  vertical: 4.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(12.0),
+                                ),
+                                child: Text(
+                                  '${_currentImageIndex + 1}/${_listing!.imageUrls.length}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      // Listing details
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title and price
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _listing!.title,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ),
+                                Text(
+                                  _listing!.price == 0
+                                      ? 'Free'
+                                      : '\$${_listing!.price.toStringAsFixed(_listing!.price.truncateToDouble() == _listing!.price ? 0 : 2)}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).primaryColor,
+                                      ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8.0),
+                            // Location and time
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 16.0,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 4.0),
+                                Text(
+                                  _listing!.neighborhood,
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(width: 16.0),
+                                const Icon(
+                                  Icons.access_time,
+                                  size: 16.0,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 4.0),
+                                Text(
+                                  _getTimeAgo(_listing!.createdAt),
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16.0),
+                            // Category and subcategory
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                    vertical: 4.0,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .primaryColor
+                                        .withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4.0),
+                                  ),
+                                  child: Text(
+                                    _listing!.category,
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                if (_listing!.subcategory.isNotEmpty) ...[
+                                  const SizedBox(width: 8.0),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                      vertical: 4.0,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(4.0),
+                                    ),
+                                    child: Text(
+                                      _listing!.subcategory,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 16.0),
+                            // Description
+                            Text(
+                              'Description',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              _listing!.description,
+                              style: const TextStyle(
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 16.0),
+                            // Tags
+                            if (_listing!.tags.isNotEmpty) ...[
+                              Text(
+                                'Tags',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              const SizedBox(height: 8.0),
+                              Wrap(
+                                spacing: 8.0,
+                                runSpacing: 8.0,
+                                children: _listing!.tags.map((tag) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                      vertical: 4.0,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(4.0),
+                                    ),
+                                    child: Text(tag),
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 16.0),
+                            ],
+                            // Seller info
+                            Text(
+                              'Seller',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                  child: Text(
+                                    _listing!.sellerName[0].toUpperCase(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8.0),
+                                Text(
+                                  _listing!.sellerName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24.0),
+                            // Contact buttons
+                            if (_listing!.sellerId !=
+                                _authService.currentUser) ...[
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: PrimaryButton(
+                                      text: 'Message',
+                                      onPressed: () {
+                                        // Navigate to chat screen
+                                        Navigator.of(context).pushNamed(
+                                          '/chat',
+                                          arguments: {
+                                            'sellerId': _listing!.sellerId,
+                                            'sellerName': _listing!.sellerName,
+                                            'listingId': _listing!.id,
+                                            'listingTitle': _listing!.title,
+                                          },
+                                        );
+                                      },
+                                      icon: Icons.message_outlined,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
                         ),
-                      ],
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 16.0),
-                  // Description
-                  Text(
-                    'Description',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    _listing!.description,
-                    style: const TextStyle(
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 16.0),
-                  // Tags
-                  if (_listing!.tags.isNotEmpty) ...[
-                    Text(
-                      'Tags',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 8.0,
-                      children: _listing!.tags.map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 4.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                          child: Text(tag),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 16.0),
-                  ],
-                  // Seller info
-                  Text(
-                    'Seller',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        child: Text(
-                          _listing!.sellerName[0].toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        _listing!.sellerName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24.0),
-                  // Contact buttons
-                  if (_listing!.sellerId != _authService.currentUserId) ...[
-                    Row(
-                      children: [
-                        Expanded(
-                          child: PrimaryButton(
-                            text: 'Message',
-                            onPressed: () {
-                              // Navigate to chat screen
-                              Navigator.of(context).pushNamed(
-                                '/chat',
-                                arguments: {
-                                  'sellerId': _listing!.sellerId,
-                                  'sellerName': _listing!.sellerName,
-                                  'listingId': _listing!.id,
-                                  'listingTitle': _listing!.title,
-                                },
-                              );
-                            },
-                            icon: Icons.message_outlined,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+                ),
     );
   }
 }

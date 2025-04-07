@@ -11,16 +11,15 @@ class MessagingService {
   MessagingService({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
-  }) :
-        _firestore = firestore ?? FirebaseFirestore.instance,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
         _auth = auth ?? FirebaseAuth.instance;
 
   // Create a new chat between two users
   Future<String> createChat(
-      String currentUserId,
-      String otherUserId,
-      String listingTitle,
-      ) async {
+    String currentUserId,
+    String otherUserId,
+    String listingTitle,
+  ) async {
     try {
       // Check if chat already exists
       final existingChatQuery = await _firestore
@@ -55,10 +54,10 @@ class MessagingService {
 
   // Send a message in a chat
   Future<void> sendMessage(
-      String chatId,
-      String senderId,
-      String content,
-      ) async {
+    String chatId,
+    String senderId,
+    String content,
+  ) async {
     try {
       // Add message to chat
       final messageRef = _firestore
@@ -74,6 +73,8 @@ class MessagingService {
         content: content,
         timestamp: DateTime.now(),
         isRead: false,
+        senderName: '',
+        type: MessageType.text,
       );
 
       await messageRef.set(message.toMap());
@@ -101,7 +102,7 @@ class MessagingService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
-        return MessageModel.fromMap(doc.data());
+        return MessageModel.fromMap(doc.data(), doc.id);
       }).toList();
     });
   }
@@ -145,11 +146,15 @@ class MessagingService {
   }
 
   // Helper method to get other participants in a chat
-  Future<List<String>> _getOtherParticipants(String chatId, String currentUserId) async {
+  Future<List<String>> _getOtherParticipants(
+      String chatId, String currentUserId) async {
     try {
       final chatDoc = await _firestore.collection('chats').doc(chatId).get();
       List<dynamic> participants = chatDoc.data()?['participants'] ?? [];
-      return participants.where((id) => id != currentUserId).cast<String>().toList();
+      return participants
+          .where((id) => id != currentUserId)
+          .cast<String>()
+          .toList();
     } catch (e) {
       rethrow;
     }

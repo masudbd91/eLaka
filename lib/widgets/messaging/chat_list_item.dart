@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../config/theme.dart';
+
 class ChatListItem extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -33,12 +35,12 @@ class ChatListItem extends StatelessWidget {
         backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
         child: imageUrl.isEmpty
             ? Text(
-          title[0].toUpperCase(),
-          style: const TextStyle(
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
-          ),
-        )
+                title[0].toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
             : null,
       ),
       title: Row(
@@ -47,7 +49,8 @@ class ChatListItem extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                fontWeight: unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
+                fontWeight:
+                    unreadCount > 0 ? FontWeight.bold : FontWeight.normal,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -81,7 +84,9 @@ class ChatListItem extends StatelessWidget {
             time,
             style: TextStyle(
               fontSize: 12.0,
-              color: unreadCount > 0 ? AppTheme.primaryColor : AppTheme.textSecondaryColor,
+              color: unreadCount > 0
+                  ? AppTheme.primaryColor
+                  : AppTheme.textSecondaryColor,
             ),
           ),
           const SizedBox(height: 4.0),

@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../config/theme.dart';
+import '../../services/database_service.dart';
+
 class OfferScreen extends StatefulWidget {
   final String chatId;
   final String listingId;
@@ -97,8 +100,8 @@ class _OfferScreenState extends State<OfferScreen> {
             Text(
               'Original Price',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8.0),
             Text(
@@ -112,8 +115,8 @@ class _OfferScreenState extends State<OfferScreen> {
             Text(
               'Your Offer',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8.0),
             TextField(
@@ -129,15 +132,16 @@ class _OfferScreenState extends State<OfferScreen> {
             Text(
               'Add a Note (Optional)',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8.0),
             TextField(
               controller: _noteController,
               maxLines: 3,
               decoration: const InputDecoration(
-                hintText: 'Example: I can pick it up today if you accept my offer.',
+                hintText:
+                    'Example: I can pick it up today if you accept my offer.',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -159,9 +163,9 @@ class _OfferScreenState extends State<OfferScreen> {
                   const SizedBox(height: 8.0),
                   const Text(
                     '• Be reasonable with your offer\n'
-                        '• Explain why you\'re offering a different price\n'
-                        '• Mention if you can pick up soon\n'
-                        '• Be polite and respectful',
+                    '• Explain why you\'re offering a different price\n'
+                    '• Mention if you can pick up soon\n'
+                    '• Be polite and respectful',
                   ),
                 ],
               ),
@@ -174,13 +178,13 @@ class _OfferScreenState extends State<OfferScreen> {
                 onPressed: _isLoading ? null : _sendOffer,
                 child: _isLoading
                     ? const SizedBox(
-                  height: 20.0,
-                  width: 20.0,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.0,
-                  ),
-                )
+                        height: 20.0,
+                        width: 20.0,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.0,
+                        ),
+                      )
                     : const Text('Send Offer'),
               ),
             ),

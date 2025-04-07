@@ -31,6 +31,13 @@ void main() {
         location: 'Test Location',
         createdAt: DateTime.now(),
         status: 'available',
+        subcategory: '',
+        imageUrls: [],
+        neighborhood: '',
+        updatedAt: DateTime.now(),
+        tags: [],
+        reviewCount: 0,
+        ratings: 0,
       );
 
       // Add listing to database

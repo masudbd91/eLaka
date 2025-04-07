@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:uuid/uuid.dart';
-import '../models/chat_model.dart';
+import '../models/chat_model.dart'; // Ensure this file defines the ChatModel class
+
+// If the ChatModel class is not defined, define it in the chat_model.dart file.
 import '../models/message_model.dart';
 import '../models/user_model.dart';
 
@@ -13,8 +15,10 @@ class ChatService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
   // Collection references
-  final CollectionReference chatCollection = FirebaseFirestore.instance.collection('chats');
-  final CollectionReference messageCollection = FirebaseFirestore.instance.collection('messages');
+  final CollectionReference chatCollection =
+      FirebaseFirestore.instance.collection('chats');
+  final CollectionReference messageCollection =
+      FirebaseFirestore.instance.collection('messages');
 
   // Get or create a chat between two users
   Future<String> getOrCreateChat({
@@ -32,7 +36,8 @@ class ChatService {
         .get();
 
     List<ChatModel> chats = chatQuery.docs
-        .map((doc) => ChatModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+        .map((doc) =>
+            ChatModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
         .where((chat) => chat.participants.contains(otherUserId))
         .toList();
 
@@ -56,7 +61,7 @@ class ChatService {
       otherUserId: otherUserName,
     };
 
-    ChatModel newChat = ChatModel(
+    var newChat = ChatModel(
       id: const Uuid().v4(),
       participants: [currentUserId, otherUserId],
       participantNames: participantNames,
@@ -217,10 +222,7 @@ class ChatService {
 
   // Get typing status for a chat
   Stream<List<String>> getTypingUsers(String chatId) {
-    return chatCollection
-        .doc(chatId)
-        .snapshots()
-        .map((snapshot) {
+    return chatCollection.doc(chatId).snapshots().map((snapshot) {
       if (snapshot.exists) {
         final data = snapshot.data() as Map<String, dynamic>;
         if (data.containsKey('typingUsers')) {

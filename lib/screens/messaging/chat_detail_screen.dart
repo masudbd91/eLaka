@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/message_model.dart';
@@ -36,7 +37,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _currentUserId = _authService.currentUserId;
+    _currentUserId = _authService.currentUser as String?;
     _currentUserName = _authService.currentUser?.name;
 
     // Mark messages as read when opening the chat
@@ -68,7 +69,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   void _sendTextMessage() {
     final text = _messageController.text.trim();
-    if (text.isEmpty || _currentUserId == null || _currentUserName == null) return;
+    if (text.isEmpty || _currentUserId == null || _currentUserName == null)
+      return;
 
     _chatService.sendTextMessage(
       chatId: widget.chatId,
@@ -156,7 +158,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               stream: _chatService.getTypingUsers(widget.chatId),
               builder: (context, snapshot) {
                 final typingUsers = snapshot.data ?? [];
-                final isOtherUserTyping = typingUsers.any((userId) => userId != _currentUserId);
+                final isOtherUserTyping =
+                    typingUsers.any((userId) => userId != _currentUserId);
 
                 if (isOtherUserTyping) {
                   return const Text(
@@ -244,9 +247,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             child: Container(
                               padding: message.type == MessageType.text
                                   ? const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                                vertical: 10.0,
-                              )
+                                      horizontal: 16.0,
+                                      vertical: 10.0,
+                                    )
                                   : const EdgeInsets.all(4.0),
                               decoration: BoxDecoration(
                                 color: isMe
@@ -263,7 +266,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                     Text(
                                       message.content,
                                       style: TextStyle(
-                                        color: isMe ? Colors.white : Colors.black,
+                                        color:
+                                            isMe ? Colors.white : Colors.black,
                                       ),
                                     )
                                   else
@@ -287,21 +291,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                         );
                                       },
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
                                         child: Image.network(
                                           message.content,
                                           width: 200.0,
                                           fit: BoxFit.cover,
-                                          loadingBuilder: (context, child, loadingProgress) {
-                                            if (loadingProgress == null) return child;
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
                                             return SizedBox(
                                               width: 200.0,
                                               height: 200.0,
                                               child: Center(
-                                                child: CircularProgressIndicator(
-                                                  value: loadingProgress.expectedTotalBytes != null
-                                                      ? loadingProgress.cumulativeBytesLoaded /
-                                                      loadingProgress.expectedTotalBytes!
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  value: loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
                                                       : null,
                                                 ),
                                               ),
@@ -318,7 +330,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                         '${message.timestamp.hour}:${message.timestamp.minute.toString().padLeft(2, '0')}',
                                         style: TextStyle(
                                           fontSize: 10.0,
-                                          color: isMe ? Colors.white70 : Colors.black54,
+                                          color: isMe
+                                              ? Colors.white70
+                                              : Colors.black54,
                                         ),
                                       ),
                                       if (isMe) ...[
@@ -345,7 +359,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               radius: 16.0,
                               backgroundColor: Theme.of(context).primaryColor,
                               child: Text(
-                                _currentUserName != null && _currentUserName!.isNotEmpty
+                                _currentUserName != null &&
+                                        _currentUserName!.isNotEmpty
                                     ? _currentUserName![0].toUpperCase()
                                     : '?',
                                 style: const TextStyle(
@@ -424,4 +439,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
     );
   }
+}
+
+extension on User? {
+  String? get name => null;
 }

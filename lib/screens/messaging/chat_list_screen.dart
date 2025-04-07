@@ -1,9 +1,53 @@
-// File: lib/screens/messaging/chat_list_screen.dart
+// lib/screens/messaging/chat_list_screen.dart
 
 import 'package:flutter/material.dart';
-import '../../models/chat_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+
+class ChatModel {
+  // Define your fields here
+  final String id;
+  final String participant1Id;
+  final String participant2Id;
+  final String? participant1Name;
+  final String? participant2Name;
+  final String lastMessage;
+  final DateTime lastMessageTimestamp;
+  final String lastMessageSenderId;
+  final bool isUnread;
+  final String? listingTitle;
+  final String? listingImageUrl;
+
+  ChatModel({
+    required this.id,
+    required this.participant1Id,
+    required this.participant2Id,
+    this.participant1Name,
+    this.participant2Name,
+    required this.lastMessage,
+    required this.lastMessageTimestamp,
+    required this.lastMessageSenderId,
+    required this.isUnread,
+    this.listingTitle,
+    this.listingImageUrl,
+  });
+
+  factory ChatModel.fromJson(Map<String, dynamic> json) {
+    return ChatModel(
+      id: json['id'] as String,
+      participant1Id: json['participant1Id'] as String,
+      participant2Id: json['participant2Id'] as String,
+      participant1Name: json['participant1Name'] as String?,
+      participant2Name: json['participant2Name'] as String?,
+      lastMessage: json['lastMessage'] as String,
+      lastMessageTimestamp: DateTime.parse(json['lastMessageTimestamp'] as String),
+      lastMessageSenderId: json['lastMessageSenderId'] as String,
+      isUnread: json['isUnread'] as bool,
+      listingTitle: json['listingTitle'] as String?,
+      listingImageUrl: json['listingImageUrl'] as String?,
+    );
+  }
+}
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -21,6 +65,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   void initState() {
     super.initState();
+    // Use the currentUserId getter instead of currentUser
     _currentUserId = _authService.currentUserId;
   }
 
@@ -43,16 +88,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
-  String _getOtherParticipantName(ChatModel chat) {
-    if (_currentUserId == null) return '';
-
-    for (var participantId in chat.participants) {
-      if (participantId != _currentUserId) {
-        return chat.participantNames[participantId] ?? 'Unknown';
-      }
+  String _getOtherParticipantName(chat) {
+    if (chat.participant1Id == _currentUserId) {
+      return chat.participant2Name ?? 'Unknown';
+    } else if (chat.participant2Id == _currentUserId) {
+      return chat.participant1Name ?? 'Unknown';
     }
-
-    return '';
+    return 'Unknown';
   }
 
   @override
@@ -69,7 +111,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       appBar: AppBar(
         title: const Text('Messages'),
       ),
-      body: StreamBuilder<List<ChatModel>>(
+      body: StreamBuilder<List<dynamic>>(
         stream: _chatService.getChatsForUser(_currentUserId!),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -80,8 +122,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          final chats = snapshot.data ?? [];
+          List<ChatModel> chats = [];
 
+          if (snapshot.data != null) {
+            chats = snapshot.data!.map((e) {
+              // Use fromMap instead of fromJson if needed
+              return ChatModel.fromJson(e as Map<String, dynamic>);
+            }).toList();
+          }
           if (chats.isEmpty) {
             return const Center(
               child: Text('No messages yet'),
@@ -93,13 +141,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
             itemBuilder: (context, index) {
               final chat = chats[index];
               final otherParticipantName = _getOtherParticipantName(chat);
-              final isLastMessageFromMe = chat.lastMessageSenderId == _currentUserId;
+              final isLastMessageFromMe =
+                  chat.lastMessageSenderId == _currentUserId;
 
               return ListTile(
                 leading: CircleAvatar(
                   backgroundColor: Theme.of(context).primaryColor,
                   child: Text(
-                    otherParticipantName.isNotEmpty ? otherParticipantName[0].toUpperCase() : '?',
+                    otherParticipantName.isNotEmpty
+                        ? otherParticipantName[0].toUpperCase()
+                        : '?',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

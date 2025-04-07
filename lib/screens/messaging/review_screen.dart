@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
+import '../../config/theme.dart';
+import '../../services/database_service.dart';
+
 class ReviewScreen extends StatefulWidget {
   final String userId;
   final String listingId;
@@ -139,9 +142,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   const SizedBox(height: 8.0),
                   const Text(
                     '• Be honest and specific\n'
-                        '• Mention if the item was as described\n'
-                        '• Comment on communication and reliability\n'
-                        '• Keep it respectful and constructive',
+                    '• Mention if the item was as described\n'
+                    '• Comment on communication and reliability\n'
+                    '• Keep it respectful and constructive',
                   ),
                 ],
               ),
@@ -154,13 +157,13 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 onPressed: _isLoading ? null : _submitReview,
                 child: _isLoading
                     ? const SizedBox(
-                  height: 20.0,
-                  width: 20.0,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.0,
-                  ),
-                )
+                        height: 20.0,
+                        width: 20.0,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.0,
+                        ),
+                      )
                     : const Text('Submit Review'),
               ),
             ),

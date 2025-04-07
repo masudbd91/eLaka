@@ -15,8 +15,11 @@ class AuthService {
   // Stream of auth changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
+  String? get currentUserId => null;
+
   // Sign in with email and password
-  Future<UserCredential> signInWithEmailAndPassword(String email, String password) async {
+  Future<UserCredential> signInWithEmailAndPassword(
+      String email, String password) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -24,7 +27,10 @@ class AuthService {
       );
 
       // Update last login timestamp
-      await _firestore.collection('users').doc(userCredential.user!.uid).update({
+      await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
 
@@ -38,7 +44,8 @@ class AuthService {
   Future<UserCredential> registerWithEmailAndPassword(
       String email, String password, String name, String phone) async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -56,9 +63,14 @@ class AuthService {
         location: '',
         ratings: 0,
         reviewCount: 0,
+        neighborhood: '',
+        lastActive: DateTime.now(),
       );
 
-      await _firestore.collection('users').doc(userCredential.user!.uid).set(newUser.toMap());
+      await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set(newUser.toMap());
 
       // Send email verification
       await userCredential.user!.sendEmailVerification();
@@ -106,12 +118,12 @@ class AuthService {
 
   // Verify phone number
   Future<void> verifyPhoneNumber(
-      String phoneNumber,
-      Function(PhoneAuthCredential) verificationCompleted,
-      Function(FirebaseAuthException) verificationFailed,
-      Function(String, int?) codeSent,
-      Function(String) codeAutoRetrievalTimeout,
-      ) async {
+    String phoneNumber,
+    Function(PhoneAuthCredential) verificationCompleted,
+    Function(FirebaseAuthException) verificationFailed,
+    Function(String, int?) codeSent,
+    Function(String) codeAutoRetrievalTimeout,
+  ) async {
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       verificationCompleted: verificationCompleted,
@@ -123,7 +135,8 @@ class AuthService {
   }
 
   // Verify with code
-  Future<UserCredential> verifyWithCode(String verificationId, String smsCode) async {
+  Future<UserCredential> verifyWithCode(
+      String verificationId, String smsCode) async {
     try {
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: verificationId,
@@ -149,7 +162,8 @@ class AuthService {
   // Get user data from Firestore
   Future<UserModel?> getUserData(String userId) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
+      DocumentSnapshot doc =
+          await _firestore.collection('users').doc(userId).get();
       if (doc.exists) {
         return UserModel.fromMap(doc.data() as Map<String, dynamic>);
       }
@@ -160,7 +174,8 @@ class AuthService {
   }
 
   // Update user profile
-  Future<void> updateUserProfile(String userId, Map<String, dynamic> data) async {
+  Future<void> updateUserProfile(
+      String userId, Map<String, dynamic> data) async {
     try {
       await _firestore.collection('users').doc(userId).update(data);
     } catch (e) {
@@ -200,6 +215,8 @@ class AuthService {
       location: '',
       ratings: 0,
       reviewCount: 0,
+      neighborhood: '',
+      lastActive: DateTime.now(),
     );
   }
 }

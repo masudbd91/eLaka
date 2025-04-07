@@ -1,7 +1,6 @@
 // File: lib/models/temp_storage.dart
 
-import 'dart:io';
-import '../models/listing_model.dart';
+import 'package:elaka/models/listing_model.dart';
 import '../models/user_model.dart';
 
 /// A temporary storage class to simulate database functionality
@@ -17,20 +16,21 @@ class TempStorage {
 
   // Mock data
   final List<ListingModel> _listings = [];
-  final List<File> _images = [];
+  // Removed unused '_images' field
   final UserModel _currentUser = UserModel(
     id: 'temp-user-id',
     name: 'Demo User',
     email: 'demo@example.com',
-    phoneNumber: '+1234567890',
     phone: '+1234567890',
     neighborhood: 'Sample Neighborhood',
     createdAt: DateTime.now(),
     lastActive: DateTime.now(),
-    isVerified: null,
-    lastLogin: null,
+    isVerified: true,
+    lastLogin: DateTime.now(),
     profileImageUrl: '',
     location: '',
+    ratings: 0.0,
+    reviewCount: 0,
   );
 
   // Getters
@@ -61,19 +61,19 @@ class TempStorage {
     }
   }
 
-  List<ListingModel> getListingsByCategory(String category) {
+  Future<List<dynamic>> getListingsByCategory(String category) async {
     return _listings
         .where((listing) =>
             listing.category == category &&
-            listing.status == ListingStatus.active)
+            listing.status == ListingStatus.sold)
         .toList();
   }
 
-  List<ListingModel> searchListings(String query) {
+  Future<List<dynamic>> searchListings(String query) async {
     final lowercaseQuery = query.toLowerCase();
     return _listings
         .where((listing) =>
-            listing.status == ListingStatus.active &&
+            listing.status == ListingStatus.sold &&
             (listing.title.toLowerCase().contains(lowercaseQuery) ||
                 listing.description.toLowerCase().contains(lowercaseQuery) ||
                 listing.tags
@@ -98,12 +98,16 @@ class TempStorage {
           'https://images.unsplash.com/photo-1555041469-a586c61ea9bc'
         ],
         neighborhood: 'Downtown',
-        location: 'Main Street',
         tags: ['sofa', 'leather', 'furniture', 'living room'],
         sellerId: _currentUser.id,
         sellerName: _currentUser.name,
         createdAt: now.subtract(const Duration(days: 2)),
         updatedAt: now.subtract(const Duration(days: 2)),
+        status: '',
+        ratings: 0.0,
+        reviewCount: 0,
+        location: '',
+        images: [],
       ));
 
       addListing(ListingModel(
@@ -124,6 +128,10 @@ class TempStorage {
         sellerName: _currentUser.name,
         createdAt: now.subtract(const Duration(days: 5)),
         updatedAt: now.subtract(const Duration(days: 5)),
+        status: '',
+        ratings: 0.0,
+        reviewCount: 0,
+        images: [],
       ));
 
       addListing(ListingModel(
@@ -144,6 +152,10 @@ class TempStorage {
         sellerName: _currentUser.name,
         createdAt: now.subtract(const Duration(days: 10)),
         updatedAt: now.subtract(const Duration(days: 10)),
+        status: '',
+        ratings: 0.0,
+        reviewCount: 0,
+        images: [],
       ));
 
       addListing(ListingModel(
@@ -164,6 +176,10 @@ class TempStorage {
         sellerName: _currentUser.name,
         createdAt: now.subtract(const Duration(days: 7)),
         updatedAt: now.subtract(const Duration(days: 7)),
+        status: '',
+        ratings: 0.0,
+        reviewCount: 0,
+        images: [],
       ));
 
       addListing(ListingModel(
@@ -184,6 +200,10 @@ class TempStorage {
         sellerName: _currentUser.name,
         createdAt: now.subtract(const Duration(days: 1)),
         updatedAt: now.subtract(const Duration(days: 1)),
+        status: '',
+        ratings: 0.0,
+        reviewCount: 0,
+        images: [],
       ));
     }
   }

@@ -1,6 +1,7 @@
 // File: lib/screens/marketplace/improved_create_listing_screen.dart
 
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -50,7 +51,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
   }
 
   Future<void> _loadUserNeighborhood() async {
-    final userId = _authService.currentUserId;
+    final userId = _authService.currentUser;
     if (userId != null) {
       final user = await _databaseService.getUserData(userId);
       if (user != null && mounted) {
@@ -113,7 +114,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
   Future<void> _detectLocation() async {
     // In a real app, this would use the geolocator package
     // For now, we'll just use the user's neighborhood from their profile
-    final userId = _authService.currentUserId;
+    final userId = _authService.currentUser;
     if (userId != null) {
       final user = await _databaseService.getUserData(userId);
       if (user != null && mounted) {
@@ -158,13 +159,14 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
         // Upload images to Firebase Storage
         final List<String> imageUrls = await _storageService.uploadImages(
           _selectedImages,
-          'listings/${currentUser.id}',
+          'listings/${currentUser.uid}',
         );
 
         // Parse tags
         List<String> tags = [];
         if (_tagsController.text.isNotEmpty) {
-          tags = _tagsController.text.split(',')
+          tags = _tagsController.text
+              .split(',')
               .map((tag) => tag.trim())
               .where((tag) => tag.isNotEmpty)
               .toList();
@@ -182,14 +184,18 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
           neighborhood: _locationController.text,
           location: _locationController.text,
           tags: tags,
-          sellerId: currentUser.id,
+          sellerId: currentUser.uid,
           sellerName: currentUser.name,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
+          status: '',
+          ratings: 0.0,
+          reviewCount: 0,
+          images: [],
         );
 
         // Save to Firestore
-        await _databaseService.addListing(listing);
+        await _databaseService.createListing(listing);
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -228,8 +234,8 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                 Text(
                   'Photos',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 8.0),
                 Container(
@@ -240,77 +246,78 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                   ),
                   child: _selectedImages.isEmpty
                       ? Center(
-                    child: TextButton.icon(
-                      onPressed: _pickImages,
-                      icon: const Icon(Icons.add_photo_alternate),
-                      label: const Text('Add Photos'),
-                    ),
-                  )
-                      : ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _selectedImages.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == _selectedImages.length) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: InkWell(
-                            onTap: _pickImages,
-                            child: Container(
-                              width: 100.0,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8.0),
-                                border: Border.all(
-                                  color: AppTheme.dividerColor,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.add_photo_alternate,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
+                          child: TextButton.icon(
+                            onPressed: _pickImages,
+                            icon: const Icon(Icons.add_photo_alternate),
+                            label: const Text('Add Photos'),
                           ),
-                        );
-                      }
+                        )
+                      : ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _selectedImages.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == _selectedImages.length) {
+                              return Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: InkWell(
+                                  onTap: _pickImages,
+                                  child: Container(
+                                    width: 100.0,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      border: Border.all(
+                                        color: AppTheme.dividerColor,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.add_photo_alternate,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
 
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: 100.0,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8.0),
-                                image: DecorationImage(
-                                  image: FileImage(File(_selectedImages[index].path)),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: InkWell(
-                                onTap: () => _removeImage(index),
-                                child: Container(
-                                  padding: const EdgeInsets.all(4.0),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.black54,
-                                    shape: BoxShape.circle,
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    width: 100.0,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      image: DecorationImage(
+                                        image: FileImage(
+                                            File(_selectedImages[index].path)),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
                                   ),
-                                  child: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 16.0,
+                                  Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: InkWell(
+                                      onTap: () => _removeImage(index),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4.0),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.black54,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                          size: 16.0,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
 
                 // Rest of the form (same as before)
@@ -322,4 +329,8 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
       ),
     );
   }
+}
+
+extension on User {
+  get name => null;
 }

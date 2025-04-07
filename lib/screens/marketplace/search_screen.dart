@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
+// import 'package:marketplace/theme/theme.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+
+import '../../config/theme.dart';
+import '../../services/database_service.dart';
+import '../../services/preferences_service.dart';
+import '../../widgets/marketplace/category_card.dart';
+import '../../widgets/marketplace/listing_card.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -43,7 +50,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
       setState(() {
         _searchHistory = searchHistory;
-        _categories = categories;
+        _categories = categories.cast<Map<String, dynamic>>();
         _isLoading = false;
       });
     } catch (e) {
@@ -79,7 +86,8 @@ class _SearchScreenState extends State<SearchScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to clear search history: ${e.toString()}')),
+        SnackBar(
+            content: Text('Failed to clear search history: ${e.toString()}')),
       );
     }
   }
@@ -93,96 +101,101 @@ class _SearchScreenState extends State<SearchScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16.0),
-            // Search bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: SearchBar(
-                controller: _searchController,
-                onSearch: _onSearchSubmitted,
-                hintText: 'What are you looking for?',
-              ),
-            ),
-            const SizedBox(height: 24.0),
-            // Search history
-            if (_searchHistory.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Recent Searches',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16.0),
+                  // Search bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: SearchBar(
+                      controller: _searchController,
+                      hintText: 'What are you looking for?',
+                      onSubmitted: (value) {
+                        _onSearchSubmitted(value);
+                      },
+                      onTap: () {},
+                    ),
+                  ),
+                  const SizedBox(height: 24.0),
+                  // Search history
+                  if (_searchHistory.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Recent Searches',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          TextButton(
+                            onPressed: _clearSearchHistory,
+                            child: const Text('Clear'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _searchHistory.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          leading: const Icon(Icons.history),
+                          title: Text(_searchHistory[index]),
+                          onTap: () =>
+                              _onSearchSubmitted(_searchHistory[index]),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    const Divider(),
+                  ],
+                  const SizedBox(height: 16.0),
+                  // Categories
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Categories',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    TextButton(
-                      onPressed: _clearSearchHistory,
-                      child: const Text('Clear'),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8.0),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _searchHistory.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: const Icon(Icons.history),
-                    title: Text(_searchHistory[index]),
-                    onTap: () => _onSearchSubmitted(_searchHistory[index]),
-                  );
-                },
-              ),
-              const SizedBox(height: 16.0),
-              const Divider(),
-            ],
-            const SizedBox(height: 16.0),
-            // Categories
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'Categories',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 1.0,
-                crossAxisSpacing: 12.0,
-                mainAxisSpacing: 12.0,
-              ),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                return CategoryCard(
-                  name: category['name'],
-                  icon: IconData(
-                    category['iconCodePoint'],
-                    fontFamily: 'MaterialIcons',
                   ),
-                  onTap: () {
-                    Navigator.of(context).pushNamed(
-                      '/category',
-                      arguments: {'category': category},
-                    );
-                  },
-                );
-              },
+                  const SizedBox(height: 16.0),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 1.0,
+                      crossAxisSpacing: 12.0,
+                      mainAxisSpacing: 12.0,
+                    ),
+                    itemCount: _categories.length,
+                    itemBuilder: (context, index) {
+                      final category = _categories[index];
+                      return CategoryCard(
+                        name: category['name'],
+                        icon: IconData(
+                          category['iconCodePoint'],
+                          fontFamily: 'MaterialIcons',
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            '/category',
+                            arguments: {'category': category},
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24.0),
+                ],
+              ),
             ),
-            const SizedBox(height: 24.0),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -293,8 +306,11 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: SearchBar(
               controller: _searchController,
-              onSearch: _onSearchSubmitted,
               hintText: 'What are you looking for?',
+              onSubmitted: (value) {
+                _onSearchSubmitted(value);
+              },
+              onTap: () {},
             ),
           ),
           const SizedBox(height: 16.0),
@@ -304,8 +320,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             child: Text(
               '${_listings.length} ${_listings.length == 1 ? 'result' : 'results'} found',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.textSecondaryColor,
-              ),
+                    color: AppTheme.textSecondaryColor,
+                  ),
             ),
           ),
           const SizedBox(height: 16.0),
@@ -314,57 +330,62 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _listings.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.search_off,
-                    size: 64.0,
-                    color: AppTheme.textSecondaryColor,
-                  ),
-                  const SizedBox(height: 16.0),
-                  Text(
-                    'No results found',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(
-                    'Try a different search term or category',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppTheme.textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            )
-                : RefreshIndicator(
-              onRefresh: _loadData,
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 12.0,
-                  mainAxisSpacing: 12.0,
-                ),
-                itemCount: _listings.length,
-                itemBuilder: (context, index) {
-                  final listing = _listings[index];
-                  return ListingCard(
-                    title: listing['title'],
-                    price: listing['price'] == 0
-                        ? 'Free'
-                        : '\$${listing['price'].toStringAsFixed(listing['price'].truncateToDouble() == listing['price'] ? 0 : 2)}',
-                    location: listing['neighborhood'],
-                    timePosted: _getTimeAgo(DateTime.parse(listing['createdAt'])),
-                    imageUrl: listing['imageUrls'][0],
-                    isSold: listing['status'] == 'sold',
-                    onTap: () => _onListingTap(listing),
-                  );
-                },
-              ),
-            ),
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 64,
+                              color: AppTheme.textSecondaryColor,
+                            ),
+                            const SizedBox(height: 16.0),
+                            Text(
+                              'No results found',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              'Try a different search term or category.',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: AppTheme.textSecondaryColor,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _loadData,
+                        child: GridView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.75,
+                            crossAxisSpacing: 12.0,
+                            mainAxisSpacing: 12.0,
+                          ),
+                          itemCount: _listings.length,
+                          itemBuilder: (context, index) {
+                            final listing = _listings[index];
+                            return ListingCard(
+                              title: listing['title'],
+                              price: listing['price'] == 0
+                                  ? 'Free'
+                                  : '\$${listing['price'].toStringAsFixed(listing['price'].truncateToDouble() == listing['price'] ? 0 : 2)}',
+                              location: listing['neighborhood'],
+                              timePosted: _getTimeAgo(
+                                  DateTime.parse(listing['createdAt'])),
+                              imageUrl: listing['imageUrls'][0],
+                              isSold: listing['status'] == 'sold',
+                              onTap: () => _onListingTap(listing),
+                            );
+                          },
+                        ),
+                      ),
           ),
         ],
       ),

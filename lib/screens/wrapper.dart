@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user_model.dart';
 import 'auth/login_screen.dart';
-import 'marketplace/improved_home_screen.dart';
+import 'home/home_screen.dart';
 
 class Wrapper extends StatelessWidget {
   const Wrapper({super.key});
@@ -17,7 +17,7 @@ class Wrapper extends StatelessWidget {
     if (user == null) {
       return const LoginScreen();
     } else {
-      return const ImprovedHomeScreen();
+      return const HomeScreen();
     }
   }
 }

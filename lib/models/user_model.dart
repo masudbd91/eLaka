@@ -25,6 +25,8 @@ class UserModel {
     required this.location,
     required this.ratings,
     required this.reviewCount,
+    required String neighborhood,
+    required DateTime lastActive,
   });
 
   Map<String, dynamic> toMap() {
@@ -56,6 +58,8 @@ class UserModel {
       location: map['location'] ?? '',
       ratings: (map['ratings'] ?? 0).toDouble(),
       reviewCount: map['reviewCount'] ?? 0,
+      neighborhood: 'jeshore',
+      lastActive: DateTime.now(),
     );
   }
 }
