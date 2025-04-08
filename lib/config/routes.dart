@@ -43,7 +43,7 @@ class AppRoutes {
       case verification:
         return MaterialPageRoute(builder: (_) => const VerificationScreen());
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(builder: (_) => const MarketplaceHomeScreen());
       case search:
         return MaterialPageRoute(builder: (_) => const SearchScreen());
       case searchResults:

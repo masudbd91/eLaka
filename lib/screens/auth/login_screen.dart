@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 20),
                     Image.asset(
-                      'assets/images/elaka_logo.jpg',
+                      'assets/images/elaka_logo.png',
                       height: 120,
                     ),
                     const SizedBox(height: 40),

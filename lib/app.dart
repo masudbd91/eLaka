@@ -5,6 +5,7 @@ import 'config/theme.dart';
 import 'services/auth_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/marketplace/home_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});

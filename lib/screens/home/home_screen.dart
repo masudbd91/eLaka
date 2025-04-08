@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
+import '../marketplace/home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -84,7 +85,8 @@ class MarketplaceTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Marketplace Tab'));
+    // Import and use the fully implemented marketplace home screen
+    return const MarketplaceHomeScreen();
   }
 }
 

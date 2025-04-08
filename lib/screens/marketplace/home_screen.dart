@@ -10,14 +10,14 @@ import '../../widgets/marketplace/category_card.dart';
 import '../../widgets/marketplace/popular_search_terms.dart';
 import '../../widgets/common/custom_bottom_navigation_bar.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class MarketplaceHomeScreen extends StatefulWidget {
+  const MarketplaceHomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<MarketplaceHomeScreen> createState() => _MarketplaceHomeScreen();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _MarketplaceHomeScreen extends State<MarketplaceHomeScreen> {
   final _searchController = TextEditingController();
   int _currentIndex = 0;
   final AuthService _authService = AuthService();
