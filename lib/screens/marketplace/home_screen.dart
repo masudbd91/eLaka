@@ -132,24 +132,6 @@ class _MarketplaceHomeScreen extends State<MarketplaceHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('eLaka'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/notifications');
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await _authService.signOut();
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         onRefresh: _loadListings,
         child: SingleChildScrollView(
@@ -180,13 +162,13 @@ class _MarketplaceHomeScreen extends State<MarketplaceHomeScreen> {
               // Popular search terms
               PopularSearchTerms(
                 terms: const [
+                  'mobile',
                   'sofa',
-                  'dresser',
-                  'iphone',
+                  'fan',
                   'coffee table',
                   'tv',
-                  'couch',
-                  'free',
+                  'cars',
+                  'pickup',
                 ],
                 onTermSelected: _onSearchSubmitted,
               ),
@@ -292,10 +274,6 @@ class _MarketplaceHomeScreen extends State<MarketplaceHomeScreen> {
           Navigator.of(context).pushNamed('/create-listing');
         },
         child: const Icon(Icons.add),
-      ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onBottomNavTap,
       ),
     );
   }
