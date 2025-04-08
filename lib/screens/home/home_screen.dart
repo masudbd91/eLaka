@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../marketplace/home_screen.dart';
+import '../messaging/chats_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,9 +18,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const MarketplaceTab(),
-    const MessagesTab(),
-    const CreateListingTab(),
-    const FavoritesTab(),
+    const MyLocalTab(),
+    const ExploringTab(),
+    const ChatsTab(),
     const ProfileTab(),
   ];
 
@@ -27,7 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('eLaka'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -90,17 +90,17 @@ class MarketplaceTab extends StatelessWidget {
   }
 }
 
-class MessagesTab extends StatelessWidget {
-  const MessagesTab({super.key});
+class MyLocalTab extends StatelessWidget {
+  const MyLocalTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Messages Tab'));
+    return const Center(child: Text('My Local Tab'));
   }
 }
 
-class CreateListingTab extends StatelessWidget {
-  const CreateListingTab({super.key});
+class ExploringTab extends StatelessWidget {
+  const ExploringTab({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -108,12 +108,12 @@ class CreateListingTab extends StatelessWidget {
   }
 }
 
-class FavoritesTab extends StatelessWidget {
-  const FavoritesTab({super.key});
+class ChatsTab extends StatelessWidget {
+  const ChatsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Chats Tab'));
+    return const ChatsScreen();
   }
 }
 

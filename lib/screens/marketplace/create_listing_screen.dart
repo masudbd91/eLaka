@@ -185,7 +185,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
           location: _locationController.text,
           tags: tags,
           sellerId: currentUser.uid,
-          sellerName: currentUser.name,
+          sellerName: currentUser.uid,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           status: '',
@@ -329,8 +329,4 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
       ),
     );
   }
-}
-
-extension on User {
-  get name => null;
 }

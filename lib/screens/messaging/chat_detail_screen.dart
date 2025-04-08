@@ -442,5 +442,5 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 }
 
 extension on User? {
-  String? get name => null;
+  String? get name => this?.displayName;
 }

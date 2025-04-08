@@ -139,36 +139,13 @@ class _MarketplaceHomeScreen extends State<MarketplaceHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16.0),
-              // Search bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'What are you looking for?',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12.0, horizontal: 16.0),
-                  ),
-                  onSubmitted: (value) {
-                    _onSearchSubmitted(value);
-                  },
-                ),
-              ),
               const SizedBox(height: 16.0),
               // Popular search terms
               PopularSearchTerms(
                 terms: const [
-                  'mobile',
-                  'sofa',
-                  'fan',
-                  'coffee table',
-                  'tv',
-                  'cars',
-                  'pickup',
+                  'Part-time jobs',
+                  'Property',
+                  'Used Cars',
                 ],
                 onTermSelected: _onSearchSubmitted,
               ),

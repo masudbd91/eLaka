@@ -67,10 +67,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
         Navigator.of(context).pushReplacementNamed('/home');
         break;
       case 1: // Search
-        Navigator.of(context).pushNamed('/search');
+        Navigator.of(context).pushNamed('/my-local');
         break;
       case 2: // Sell
-        Navigator.of(context).pushNamed('/create-listing');
+        Navigator.of(context).pushNamed('/explore');
         break;
       case 3: // Chats
         // Already on chats screen
@@ -110,10 +110,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
                     },
                   ),
                 ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: _onBottomNavTap,
-      ),
     );
   }
 
@@ -141,12 +137,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24.0),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pushReplacementNamed('/home');
-            },
-            child: const Text('Browse Listings'),
-          ),
         ],
       ),
     );
